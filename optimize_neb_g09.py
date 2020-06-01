@@ -4,13 +4,13 @@ Optimize a reaction path using the nudged elastic band algorithm. An electronic 
 method implemented in Gaussian 09 is used to drive the calculation.
 
 Nudged elastic band (NEB) method for finding minimum energy paths (MEP) and saddle points.
-Implementation based on 
-     "Improved tangent estimate in the nudged elastic band method for finding minimum energy paths and saddle points" by Henkelman, G.; Jonsson, H. J.Chem.Phys. 113, 9978 (2000) 
+Implementation based on
+     "Improved tangent estimate in the nudged elastic band method for finding minimum energy paths and saddle points" by Henkelman, G.; Jonsson, H. J.Chem.Phys. 113, 9978 (2000)
 """
-from DFTB import XYZ, utils, AtomicData
+import XYZ, utils, AtomicData
 from numpy import zeros, cos, sin, pi, linspace, array, dot, vstack, cumsum, argmin, frompyfunc, sign
-from DFTB.Formats.Gaussian2py import Checkpoint
-from DFTB import optparse
+from Gaussian2py import Checkpoint
+import optparse
 
 import numpy as np
 import numpy.linalg as la
@@ -60,7 +60,7 @@ class NEB:
         for i,Ri in enumerate(self.R[:-1]):
             for j,a in enumerate(linspace(0.0, 1.0, nimg)):
                 Rinterp = (1.0-a)*self.R[i] + a*self.R[i+1]
-                # 
+                #
                 if j < nimg/2.0:
                     st.append( self.states[i] )
                 else:
@@ -139,7 +139,7 @@ class NEB:
             else:
                 kp = self.force_constant
                 Fspring = kp * norm(self.R[i+1] - self.R[i]) * self.tangents[i] # new implementation by Henkelman/Jonsson
-                                
+
             if self.states[i] != self.states[i-1]:
                 km = self.force_constant_surface_switch
                 Fspring -= dot(km*(self.R[i] - self.R[i-1]), self.tangents[i]) * self.tangents[i] # from original implementation of NEB
@@ -243,7 +243,7 @@ class NEB:
     def splineMEProfile(self):
         """
         interpolate the energy along MEP between images with a cubic spline.
-        
+
         Returns:
         ========
         me: callable function, that returns the energy as a function of the reaction coordinate
@@ -288,7 +288,7 @@ class NEB:
     def splineMEPath(self):
         """
         interpolate the minimum energy path with a cubic spline along the images.
-        
+
         Returns:
         ========
         mep: callable function, that returns the geometry as a function of the reaction coordinate
@@ -332,7 +332,7 @@ class NEB:
 def run_gaussian_map(args):
     atomlist, directory = args
     return run_gaussian(atomlist, directory=directory)
-    
+
 def run_gaussian(atomlist, directory="."):
     """
     run Gaussian input script in `neb.gjf` and read energy and gradient
@@ -392,10 +392,10 @@ if __name__ == "__main__":
     geometries along the reaction path. This path will be optimized
     using the nudged elastic band (NEB) algorithm.
 
-    In addition you have to set up a Gaussian input script called `neb.gjf` 
-    that computes the gradient and saves it in a checkpoint file called 
-    'grad.chk'. The geometry is updated via a file called `geom` that 
-    is imported at the end of the script. 
+    In addition you have to set up a Gaussian input script called `neb.gjf`
+    that computes the gradient and saves it in a checkpoint file called
+    'grad.chk'. The geometry is updated via a file called `geom` that
+    is imported at the end of the script.
     An example input script is given below:
 
     ------- example for neb.gjf ----------
@@ -404,7 +404,7 @@ if __name__ == "__main__":
     %%Mem=1Gb
     # PM6 Force
     NoSymm SCF=QC
-  
+
     s0 gradient
 
     +2,1
@@ -414,7 +414,7 @@ if __name__ == "__main__":
     --------------------------------------
 
     The NEB calculations are parallelized over the images. Therefore only a
-    single processors should be specified on the %%Nproc=... line. 
+    single processors should be specified on the %%Nproc=... line.
 
     Every 10 time steps the current path and the energy profile are written
     to `neb_####.xyz` and `path_energies_####.dat` where #### is replaced by the
@@ -443,7 +443,7 @@ if __name__ == "__main__":
     parser.add_option("-e", "--optimize_endpoints", dest="optimize_endpoints", action="store_true", default="False",
                       help="Optimize the endpoints of the path as well [default: %default]")
     (opts, args) = parser.parse_args()
-    
+
     if len(args) < 1:
         print usage
         exit(-1)
@@ -460,10 +460,10 @@ if __name__ == "__main__":
     ****************************
     """
     print opts
-    
+
     # path to xyz-file
     xyz_file = args[0]
-    # 
+    #
     name = basename(xyz_file.replace(".xyz", ""))
     # Read the geometry from the xyz-file
     atomlists = XYZ.read_xyz(xyz_file)
@@ -483,5 +483,3 @@ if __name__ == "__main__":
 
     me = neb.splineMEProfile()
     mep = neb.splineMEPath()
-    
-    
