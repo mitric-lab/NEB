@@ -34,7 +34,7 @@ class NEB:
                  procs_per_image=1, parallel_images=1,
                  mem_per_image="6Gb",
                  scratch_dir="/scratch",
-                 calculator="g09",
+                 calculator="g16",
                  print_every=1):
         """
         Parameters
@@ -453,8 +453,8 @@ if __name__ == "__main__":
                       help="Path to scratch directory [default: %default]")
     parser.add_option("--print_every", dest="print_every", type=int, default=1,
                       help="Print current path and energies every N-th step [default: %default]")
-    parser.add_option("--calculator", dest="calculator", type=str, default="g09",
-                      help="Choose electronic structure program, 'g09' (Gaussian) or 'qchem'. If Qchem is chosen, an input file called 'neb.in' has to be present instead of 'neb.gjf' [default: %default]")
+    parser.add_option("--calculator", dest="calculator", type=str, default="g16",
+                      help="Choose electronic structure program, 'g09' or 'g16' (Gaussian) or 'qchem'. If Qchem is chosen, an input file called 'neb.in' has to be present instead of 'neb.gjf' [default: %default]")
 
     (opts, args) = parser.parse_args()
 
@@ -468,6 +468,10 @@ if __name__ == "__main__":
         raise KeyError("This script can only be run through a PBS or SLURM queue, environment variable PBS_JOBID not found!")
 
     if opts.calculator == "g09" and not exists("neb.gjf"):
+        print "ERROR: Gaussian input script 'neb.gjf' not found in current folder!"
+        exit(-1)
+
+    if opts.calculator == "g16" and not exists("neb.gjf"):
         print "ERROR: Gaussian input script 'neb.gjf' not found in current folder!"
         exit(-1)
 
