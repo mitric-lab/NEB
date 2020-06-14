@@ -1,10 +1,6 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Jul  2 12:03:28 2018
 
-@author: lindnerj
-"""
 
 from setuptools import setup, find_packages
 
@@ -12,22 +8,23 @@ def readme():
     with open('README.rst') as f:
         return f.read()
 
-setup(name='metafalcon',
+setup(name='NEB',
       version='0.0.1',
-      scripts=['metafalcon/cltools/metaFALCON'],
-      description='metadynamics package for the automatic localization of conical intersections',
-      url='http://metafalcon.chemie.uni-wuerzburg.de/',
-      author='Joachim Lindner',
-      author_email='joachim.lindner@uni-wuerzburg.de',
+      scripts=['NEB/optimize_neb'],
+      description='optimize a reaction path using the nudged elastic band algorithm',
+      url='https://github.com/hochej/NEB',
+      author='Joscha Hoche',
+      author_email='joscha.hoche@uni-wuerzburg.de',
       license='',
       packages=find_packages(),
       install_requires=[
           'numpy',
-          'matplotlib',
-          'argcomplete'
+          'subprocess',
+          'multiprocessing',
+          'argparse'
       ],
       classifiers=[
-          'Programming Language :: Python :: 2.7',
+          'Programming Language :: Python :: 3.7',
           'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
           'Operating System :: OS Independent'
       ],
