@@ -1,9 +1,0 @@
-#%Module1.0
-###
-
-set root /home/hochej/software/NEB
-
-append-path PYTHONPATH ${root}
-append-path PATH ${root}
-
-module-whatis "This module allows the use of the NEB program without installation."
