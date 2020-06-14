@@ -1,40 +1,6 @@
 # NEB
 Optimize a reaction path on the ground state using Gaussian 09/16 or Q-Chem.
 
- Input Files:
-    path.xyz    -   xyz-file with educt, intermediates and product
-    neb.gjf     -   Gaussian 09 input script driving the energy calculation (see below)
-
- Output Files:
-    neb_####.xyz            -  current reaction path
-    path_energies_####.dat  -  current energy profile
-
- The single argument should be an xyz-file containing initial guess
- geometries along the reaction path. This path will be optimized
- using the nudged elastic band (NEB) algorithm.
-
- In addition you have to set up a Gaussian input script called `neb.gjf`
- that computes the gradient and saves it in a checkpoint file called
- 'grad.chk'. The geometry is updated via a file called `geom` that
- is imported at the end of the script.
- An example input script is given below:
-
-```
- ------- example for neb.gjf ----------
- %Chk=grad.chk
- %Nproc=1
- %Mem=1Gb
- # B3LYP/LANL2DZ Force
-   NoSymm
-
- s0 gradient
-
- 0 3
- @geom
-
-
- --------------------------------------
-```
  The NEB calculations are parallelized over the images. The number of images that are
  processed at the same time are specified by the option `parallel_images`.
  The calculation for each image can be run in parallel, as well. The `%Nproc=...` line
@@ -44,13 +10,12 @@ Optimize a reaction path on the ground state using Gaussian 09/16 or Q-Chem.
  to `neb_####.xyz` and `path_energies_####.dat` where #### is replaced by the
  name of the input xyz-file and the time step.
 
- To see all options for controlling the NEB calculation, call this script
+ To see all options for controlling the NEB calculation, call `optimize_neb`
  with the `--help` option.
 
 
  Usage
  ----
- Optimize a reaction path on the ground state using Gaussian 09/16 or Q-Chem.<br/>
 
  Input Files:<br/>
     `path.xyz`    -   xyz-file with educt, intermediates and product<br/>
@@ -70,6 +35,22 @@ Optimize a reaction path on the ground state using Gaussian 09/16 or Q-Chem.
  is imported at the end of the script.
  An example input script is given below:
 
+ ```
+  ------- example for neb.gjf ----------
+  %Chk=grad.chk
+  %Nproc=1
+  %Mem=1Gb
+  # B3LYP/LANL2DZ Force
+    NoSymm
+
+  s0 gradient
+
+  0 3
+  @geom
+
+
+  --------------------------------------
+ ```
 
 Optional arguments:
 * `-h`,`--help`            show this help message and exit
