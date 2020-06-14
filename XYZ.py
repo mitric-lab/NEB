@@ -171,7 +171,7 @@ def xyz2txt(geometries, title="", units="Angstrom"):
     """
     txt = ""
     for i,atoms in enumerate(geometries):
-        if type(title) == list:
+        if type(title) != str:
             if i < len(title):
                 current_title = title[i]
             else:

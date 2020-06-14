@@ -7,8 +7,8 @@ Nudged elastic band (NEB) method for finding minimum energy paths (MEP) and sadd
 Implementation based on
      "Improved tangent estimate in the nudged elastic band method for finding minimum energy paths and saddle points" by Henkelman, G.; Jonsson, H. J.Chem.Phys. 113, 9978 (2000)
 """
-from DFTB import XYZ, utils, AtomicData
-from DFTB import optparse
+import XYZ, utils, AtomicData
+import optparse
 
 from numpy import zeros, cos, sin, pi, linspace, array, dot, vstack, cumsum, argmin, frompyfunc, sign
 
@@ -270,7 +270,8 @@ class NEB:
             geometries = [XYZ.vector2atomlist(im, self.atomlist) for im in images]
             xyz_out = "neb_%s_%4.4d.xyz" % (self.name, self.istep)
             energy_titles = ["Energy="+str(energy) for energy in energies]
-            XYZ.write_xyz(xyz_out, geometries, title=list(energy_titles))
+            print(energies, len(geometries), len(energy_titles))
+            XYZ.write_xyz(xyz_out, geometries, title=energy_titles)
             print "wrote path for iteration %d to %s" % (self.istep, xyz_out)
             if energies != []:
                 # first column: index of image
