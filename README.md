@@ -71,41 +71,41 @@ Optimize a reaction path on the ground state using Gaussian 09/16 or Q-Chem.
 
 
 Optional arguments:
-* -h, --help            show this help message and exit
-* -i PROCS_PER_IMAGE, --procs_per_image=PROCS_PER_IMAGE
+* `-h`,`--help`            show this help message and exit
+* `-i PROCS_PER_IMAGE`, `--procs_per_image=PROCS_PER_IMAGE`
                      Number of processors used in the calculation for a
                      single image [default: 1]
-* -m MEM_PER_IMAGE, --mem_per_image=MEM_PER_IMAGE
+* `-m MEM_PER_IMAGE`, `--mem_per_image=MEM_PER_IMAGE`
                      Amount of memory to be allocated for each image
                      calculation [default: 6Gb]
-* -p PARALLEL_IMAGES, --parallel_images=PARALLEL_IMAGES
+* `-p PARALLEL_IMAGES`, `--parallel_images=PARALLEL_IMAGES`
                      How many images should be processed in parallel? Each
                      image will be run with `procs_per_image` processors
                      [default: 1]
-* -c FORCE_CONSTANT, --force_constant=FORCE_CONSTANT
+* `-c FORCE_CONSTANT`, `--force_constant=FORCE_CONSTANT`
                      Force constant for strings connecting the beads on the
                      elastic band [default: 1.0]
-* --mass=MASS           Mass of beads [default: 1.0]
-* -t TOLERANCE, --tolerance=TOLERANCE
+* `--mass=MASS`           Mass of beads [default: 1.0]
+* `-t TOLERANCE`, `--tolerance=TOLERANCE`
                      The optimization is finished, if the average force on
                      the band drops below this value [default: 0.02]
-* -n NSTEPS, --nsteps=NSTEPS
+* `-n NSTEPS`, `--nsteps=NSTEPS`
                      Run damped dynamics for NSTEPS steps [default: 1000]
-* --dt=DT               Time step for integrating damped dynamics [default:
+* `--dt=DT`               Time step for integrating damped dynamics [default:
                      0.1]
-* -f FRICTION, --friction=FRICTION
+* `-f FRICTION`, `--friction=FRICTION`
                      damping coefficient between 0.0 (no damping) and 1.0
                      (do not use such high damping) [default: 0.2]
-* -e, --optimize_endpoints
+* `-e`, `--optimize_endpoints`
                      Optimize the endpoints of the path as well [default:
                      False]
-* -s SCRATCH_DIR, --scratch_dir=SCRATCH_DIR
+* `-s SCRATCH_DIR`, `--scratch_dir=SCRATCH_DIR`
                      Path to scratch directory [default:
                      /sscratch/$PBS_JOBID]
-* --print_every=PRINT_EVERY
+* `--print_every=PRINT_EVERY`
                      Print current path and energies every N-th step
                      [default: 1]
-* --calculator=CALCULATOR
+* `--calculator=CALCULATOR`
                      Choose electronic structure program, 'g09' or 'g16'
                      (Gaussian) or 'qchem'. If Q-Chem is chosen, an input
                      file called 'neb.in' has to be present instead of
