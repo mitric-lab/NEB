@@ -268,9 +268,10 @@ class NEB:
         energies = self.V
         if self.istep % self.print_every == 0:
             geometries = [XYZ.vector2atomlist(im, self.atomlist) for im in images]
-            xyz_out = "neb_%s_%4.4d.xyz" % (self.name, self.istep)
+            xyz_out = "neb_%
+            s_%4.4d.xyz" % (self.name, self.istep)
             energy_titles = ["Energy="+str(energy) for energy in energies]
-            XYZ.write_xyz(xyz_out, geometries, title=energy_titles)
+            XYZ.write_xyz(xyz_out, geometries, title=list(energy_titles))
             print "wrote path for iteration %d to %s" % (self.istep, xyz_out)
             if energies != []:
                 # first column: index of image
