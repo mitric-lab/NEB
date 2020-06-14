@@ -1,15 +1,15 @@
 """\
- adapted from 
+ adapted from
 
  Code for reading/writing Xmol XYZ files.
- 
+
  This program is part of the PyQuante quantum chemistry program suite.
 
- Copyright (c) 2004, Richard P. Muller. All Rights Reserved. 
+ Copyright (c) 2004, Richard P. Muller. All Rights Reserved.
 
  PyQuante version 1.2 and later is covered by the modified BSD
  license. Please see the file LICENSE that is part of this
- distribution. 
+ distribution.
 """
 from __future__ import print_function
 
@@ -23,7 +23,7 @@ def read_xyz_it(filename, units="Angstrom", fragment_id=atomic_number):
     """
     same as read_xyz, with the difference that an iterator to the geometries
     is returned instead of a list.
-    For very large MD trajectories not all geometries can be kept in memory.  
+    For very large MD trajectories not all geometries can be kept in memory.
     The iterator returns one geometry at a time which can be processed in a pipeline.
 
     Parameters:
@@ -79,10 +79,10 @@ def read_xyz(filename, units="Angstrom", fragment_id=atomic_number):
     units: specify the units of coordinates in xyz-file, "Angstrom" or "bohr"
     fragment_id: a function that takes the name of the atom and assigns a
        number to it, usually the atomic number Z.
-    
+
     Returns:
     ========
-    list of structures, each structure is a list of atom numbers and positions 
+    list of structures, each structure is a list of atom numbers and positions
        [(Z1, (x1,y1,z1)), (Z2,(x2,y2,z2)), ...]
     """
     geometries = []
@@ -92,13 +92,13 @@ def read_xyz(filename, units="Angstrom", fragment_id=atomic_number):
 
 def extract_keywords_xyz(filename):
     """
-    The title line in an xyz-file may be used to convey additional information 
+    The title line in an xyz-file may be used to convey additional information
     (such as total electronic charge) in the form of key-value pairs.
 
     Example of xyz-file
 
     2
-    charge=+1 
+    charge=+1
     H  0.0 0.0 0.0
     H  1.0 0.0 0.0
 
@@ -159,7 +159,7 @@ def xyz2txt(geometries, title="", units="Angstrom"):
     ===========
     geometries: list of geometries, each is a list of tuples
       of type (Zi, (xi,yi,zi))
-    
+
     Optional:
     =========
     title: string, if a list of strings is provided, the number
@@ -167,10 +167,11 @@ def xyz2txt(geometries, title="", units="Angstrom"):
 
     Returns:
     ========
-    string 
+    string
     """
     txt = ""
     for i,atoms in enumerate(geometries):
+        print(type(title))
         if type(title) == list:
             if i < len(title):
                 current_title = title[i]
@@ -233,7 +234,7 @@ def update_xyz(filename,atomlist,title="", units="Angstrom"):
         fh.write("%.2s  %+15.10f  %+15.10f  %+15.10f\n" \
                    % (symbols[i],x,y,z))
     fh.close()
-        
+
 def read_initial_conditions(filename, units="Angstrom", fragment_id=atomic_number):
     """
     read initial positions and velocities from an structure_*.in file. The velocities
@@ -289,7 +290,7 @@ def atomlist2vector(atomlist):
 
 def vector2atomlist(vec, ref_atomlist):
     """
-    convert a vector [x1,y1,z1,x2,y2,z2,...] to a list of atom positions 
+    convert a vector [x1,y1,z1,x2,y2,z2,...] to a list of atom positions
 x    with atom types [(Z1,(x1,y1,z1)), (Z2,(x2,y2,z2)),...].
     The atom types are assigned in the same order as in ref_atomlist.
     """
@@ -372,7 +373,7 @@ def write_charges(filename, atomlist, charges, title=" ", units="Angstrom", mode
       2nd line: comment
       line 3 to Nat+3: five columns with
          ELEMENT  X Y Z  CHARGE
-    
+
     Parameters
     ==========
     filename   :  path to output file
@@ -385,7 +386,7 @@ def write_charges(filename, atomlist, charges, title=" ", units="Angstrom", mode
     title      :  2nd line
     units      :  output units, 'Angstrom' or 'bohr'
     mode       :  write file ('w) or append to file ('a')
-    
+
     """
     assert units in ["Angstrom", "bohr"]
     assert len(atomlist) == len(charges)
@@ -402,7 +403,7 @@ def write_charges(filename, atomlist, charges, title=" ", units="Angstrom", mode
     fh = open(filename, mode)
     fh.write(txt + '\n')
     fh.close()
-    
+
 def distance_matrix(atomlist):
     """
 
@@ -431,7 +432,7 @@ def distance_matrix(atomlist):
             D[j,i] = D[i,j]
     return D
 
-    
+
 def connectivity_matrix(atomlist, search_neighbours=None, thresh=1.3, hydrogen_bonds=False, debug=0):
     """
     compute matrix that shows which atoms are connected by bonds
@@ -445,8 +446,8 @@ def connectivity_matrix(atomlist, search_neighbours=None, thresh=1.3, hydrogen_b
 
     Optional:
     =========
-    search_neighbours: search for connected atoms among the 
-         <search_neighbours> atoms that are listed right after the current atom. 
+    search_neighbours: search for connected atoms among the
+         <search_neighbours> atoms that are listed right after the current atom.
          If search_neighbours == None, all atoms are checked.
     thresh: bond lengths can be larger by this factor and are still recognized
     hydrogen_bonds: include hydrogen bonds, too. If hydrogen donor i and hydrogen acceptor
@@ -471,7 +472,7 @@ def connectivity_matrix(atomlist, search_neighbours=None, thresh=1.3, hydrogen_b
             if RAB < thresh * bond_length:
                 Con[A,B] = 1
                 Con[B,A] = 1
-                
+
     if (hydrogen_bonds == True):
         # Hydrogen bonds should have
         # 1) donor-acceptor-distances <= 3.5 Angstrom
@@ -480,7 +481,7 @@ def connectivity_matrix(atomlist, search_neighbours=None, thresh=1.3, hydrogen_b
         max_donor_acceptor_distance = 3.5
         max_H_donor_acceptor_angle = 30.0
         # The following atoms can donate or accept a hydrogen bond: O, N
-        donor_acceptor_atoms = [8,9] 
+        donor_acceptor_atoms = [8,9]
         for A in range(0, Nat):  # loop over possible donors or acceptors
             ZA,posA = atomlist[A]
             posA = np.array(posA)
@@ -511,7 +512,7 @@ def connectivity_matrix(atomlist, search_neighbours=None, thresh=1.3, hydrogen_b
                         # B atom is the hydrogen donor
                         r_donor_H = posC - posB
                         r_donor_acceptor = posA - posB
-                    
+
                     # hydrogen-donor-acceptor angle
                     # angle angle(hydrogen --> donor --> acceptor)
                     angle = np.arccos( np.dot(r_donor_H,r_donor_acceptor)/(la.norm(r_donor_H)*la.norm(r_donor_acceptor)) )
@@ -528,7 +529,7 @@ def connectivity_matrix(atomlist, search_neighbours=None, thresh=1.3, hydrogen_b
                             print("hydrogen bond %s(%2.d)--H(%2.d)--%s(%2.d)     distance= %8.4f Ang    angle= %8.4f degrees" \
                             % (atom_names[ZA-1].upper(), A+1, C+1, atom_names[ZB-1].upper(), B+1, RAB*bohr_to_angs, angle*180.0/np.pi))
 
-        # 
+        #
     return Con
 
 def hydrogens_to_end(atomlist):
@@ -543,7 +544,7 @@ def hydrogens_to_end(atomlist):
         else:
             others.append( (Zi, posi) )
     return others+hydrogens
-    
+
 __all__ = ["read_xyz", "write_xyz"]
 
 if __name__ == "__main__":
