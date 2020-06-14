@@ -131,7 +131,7 @@ def extract_keywords_xyz(filename):
 #    print("The following keywords were found in %s: %s" % (filename, kwds))
     return kwds
 
-def write_xyz(filename,geometries,title=" ", units="Angstrom", mode='w'):
+def write_xyz(filename, geometries, title=" ", units="Angstrom", mode='w'):
     """
     write geometries to xyz-file
 
@@ -178,6 +178,7 @@ def xyz2txt(geometries, title="", units="Angstrom"):
                 current_title = " "
         else:
             current_title = title
+        current_title = str(type(title))
         txt += _append_xyz2txt(atoms, current_title, units)
     return txt
 
