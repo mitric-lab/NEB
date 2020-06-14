@@ -1,5 +1,10 @@
 # NEB
-Optimize a reaction path on the ground state using Gaussian 09/16 or Q-Chem.
+Optimize a reaction path using the nudged elastic band algorithm. An electronic structure
+method implemented in Gaussian 09/16 or Q-Chem is used to drive the calculation.
+
+Nudged elastic band (NEB) method for finding minimum energy paths (MEP) and saddle points.
+Implementation based on
+     "Improved tangent estimate in the nudged elastic band method for finding minimum energy paths and saddle points" by Henkelman, G.; Jonsson, H. J.Chem.Phys. 113, 9978 (2000)"
 
  The NEB calculations are parallelized over the images. The number of images that are
  processed at the same time are specified by the option `parallel_images`.
