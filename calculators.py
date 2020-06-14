@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
 functions for submitting QChem or Gaussian jobs to the queue, 
-requires the scripts 'run_gaussian_09.sh' and 'run_qchem.sh'
+requires the scripts 'run_gaussian_09.sh', 'run_gaussian_16.sh' and 'run_qchem.sh'
 """
-from DFTB import XYZ, AtomicData
-from DFTB.Formats.Gaussian2py import Checkpoint
+import XYZ, AtomicData
+from Gaussian2py import Checkpoint
 
 import numpy as np
 import os
@@ -57,6 +57,53 @@ def run_gaussian_09(atomlist, directory=".", nprocs=1, mem="6Gb"):
     ###
     
     return en, grad
+
+def run_gaussian_16(atomlist, directory=".", nprocs=1, mem="6Gb"):
+    """
+    run Gaussian input script in `neb.gjf` and read energy and gradient
+    from checkpoing file `grad.fchk`.
+
+    Parameters
+    ----------
+    atomlist:  list of tuples with atomic numbers and cartesian positions (Zat,[x,y,z])
+               for each atom
+    directory: directory where the calculation should be performed
+
+    Optional
+    --------
+    nprocs : int, number of processors
+    mem    : str, allocated memory (e.g. '6Gb', '100Mb')
+
+    Returns
+    -------
+    en    :  total energies of ground state (in Hartree)
+    grad  :  gradient of total energy (in a.u.)
+    """
+    # create directory if it does not exist already
+    os.system("mkdir -p %s" % directory)
+    os.system("cp neb.gjf %s/neb.gjf" % directory)
+    # update geometry
+    XYZ.write_xyz("%s/geometry.xyz" % directory, [atomlist])
+    # remove number of atoms and comment
+    os.system("cd %s; tail -n +3 geometry.xyz > geom" % directory)
+    # calculate electronic structure
+    #print "running Gaussian..."
+    # submit calculation to the cluster
+    ret  = os.system(r"cd %s; run_gaussian_16.sh --wait --fchk neb.gjf %d %s" % (directory, nprocs, mem))
+    assert ret == 0, "Return status = %s, error in Gaussian calculation, see %s/neb.out!" % (ret, directory)
+    # read checkpoint files
+    data = Checkpoint.parseCheckpointFile("%s/grad.fchk" % directory)
+
+    en   = data["_Total_Energy"]
+    grad = data["_Cartesian_Gradient"]
+
+    ### DEBUG
+    print "Cartesian Gaussian 09 gradient in %s" % directory
+    print grad
+    ###
+
+    return en, grad
+
 
 def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     """
@@ -212,6 +259,8 @@ def get_calculator(name):
     """
     if name == "g09":
         return run_gaussian_09
+    elif name == "g16":
+        return run_gaussian_16
     elif name == "qchem":
         return run_qchem
     elif name == "bagel":
