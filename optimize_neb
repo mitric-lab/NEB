@@ -4,8 +4,8 @@ Optimize a reaction path using the nudged elastic band algorithm. An electronic 
 method implemented in Gaussian 09/16 or Q-Chem is used to drive the calculation.
 
 Nudged elastic band (NEB) method for finding minimum energy paths (MEP) and saddle points.
-Implementation based on 
-     "Improved tangent estimate in the nudged elastic band method for finding minimum energy paths and saddle points" by Henkelman, G.; Jonsson, H. J.Chem.Phys. 113, 9978 (2000) 
+Implementation based on
+     "Improved tangent estimate in the nudged elastic band method for finding minimum energy paths and saddle points" by Henkelman, G.; Jonsson, H. J.Chem.Phys. 113, 9978 (2000)
 """
 from DFTB import XYZ, utils, AtomicData
 from DFTB import optparse
@@ -49,17 +49,17 @@ class NEB:
         self.parallel_images = parallel_images
         # memory per job
         self.mem_per_image = mem_per_image
-        
+
         self.scratch_dir = os.path.expandvars(scratch_dir)
         print "Subfolders for images will be created in the scratch directory '%s'" % self.scratch_dir
         print "Calculator is '%s'" % calculator
 
         # run_calculator() has to be defined as a global variable so that it can be pickled
         global run_calculator
-        run_calculator = get_calculator(calculator)        
-        
+        run_calculator = get_calculator(calculator)
+
         self.print_every = print_every
-        
+
         self.V = []
         self.istep = 0
     def setGeometry(self, atomlist):
@@ -95,7 +95,7 @@ class NEB:
         for i,Ri in enumerate(self.R[:-1]):
             for j,a in enumerate(linspace(0.0, 1.0, nimg)):
                 Rinterp = (1.0-a)*self.R[i] + a*self.R[i+1]
-                # 
+                #
                 if j < nimg/2.0:
                     st.append( self.states[i] )
                 else:
@@ -115,7 +115,7 @@ class NEB:
         # additional keywords controlling electronic structure calculation
         kwds = { "nprocs" : self.procs_per_image,
                  "mem": self.mem_per_image }
-        
+
         if self.parallel_images > 1:
             # parallelize over images
             atomlists = [XYZ.vector2atomlist(x, self.atomlist) for x in self.R]
@@ -180,7 +180,7 @@ class NEB:
             else:
                 kp = self.force_constant
                 Fspring = kp * norm(self.R[i+1] - self.R[i]) * self.tangents[i] # new implementation by Henkelman/Jonsson
-                                
+
             if self.states[i] != self.states[i-1]:
                 km = self.force_constant_surface_switch
                 Fspring -= dot(km*(self.R[i] - self.R[i-1]), self.tangents[i]) * self.tangents[i] # from original implementation of NEB
@@ -269,7 +269,8 @@ class NEB:
         if self.istep % self.print_every == 0:
             geometries = [XYZ.vector2atomlist(im, self.atomlist) for im in images]
             xyz_out = "neb_%s_%4.4d.xyz" % (self.name, self.istep)
-            XYZ.write_xyz(xyz_out, geometries)
+            energy_titles = ["Energy="+str(energy) for energy in energies]
+            XYZ.write_xyz(xyz_out, geometries, title=energy_titles)
             print "wrote path for iteration %d to %s" % (self.istep, xyz_out)
             if energies != []:
                 # first column: index of image
@@ -284,7 +285,7 @@ class NEB:
     def splineMEProfile(self):
         """
         interpolate the energy along MEP between images with a cubic spline.
-        
+
         Returns:
         ========
         me: callable function, that returns the energy as a function of the reaction coordinate
@@ -329,7 +330,7 @@ class NEB:
     def splineMEPath(self):
         """
         interpolate the minimum energy path with a cubic spline along the images.
-        
+
         Returns:
         ========
         mep: callable function, that returns the geometry as a function of the reaction coordinate
@@ -367,7 +368,7 @@ class NEB:
             assert 0.0 <= a <= 1.0
             geom = (1-a)*images[ic] + a*images[ic+1]
             return geom
-        return MEPfunc    
+        return MEPfunc
 
 
 if __name__ == "__main__":
@@ -392,10 +393,10 @@ if __name__ == "__main__":
     geometries along the reaction path. This path will be optimized
     using the nudged elastic band (NEB) algorithm.
 
-    In addition you have to set up a Gaussian input script called `neb.gjf` 
-    that computes the gradient and saves it in a checkpoint file called 
-    'grad.chk'. The geometry is updated via a file called `geom` that 
-    is imported at the end of the script. 
+    In addition you have to set up a Gaussian input script called `neb.gjf`
+    that computes the gradient and saves it in a checkpoint file called
+    'grad.chk'. The geometry is updated via a file called `geom` that
+    is imported at the end of the script.
     An example input script is given below:
 
     ------- example for neb.gjf ----------
@@ -404,7 +405,7 @@ if __name__ == "__main__":
     %%Mem=1Gb
     # B3LYP/def2-SVP Force
       NoSymm SCF=QC
-  
+
     s0 gradient
 
     0 3
@@ -413,9 +414,9 @@ if __name__ == "__main__":
 
     --------------------------------------
 
-    The NEB calculations are parallelized over the images. The number of images that are 
-    processed at the same time are specified by the option `parallel_images`. 
-    The calculation for each image can be run in parallel, as well. The %%Nproc=... line 
+    The NEB calculations are parallelized over the images. The number of images that are
+    processed at the same time are specified by the option `parallel_images`.
+    The calculation for each image can be run in parallel, as well. The %%Nproc=... line
     in the Gaussian job file should agree with the value provided in the option `procs_per_image`.
 
     Every N time steps the current path and the energy profile are written
@@ -454,9 +455,9 @@ if __name__ == "__main__":
                       help="Print current path and energies every N-th step [default: %default]")
     parser.add_option("--calculator", dest="calculator", type=str, default="g09",
                       help="Choose electronic structure program, 'g09' (Gaussian) or 'qchem'. If Qchem is chosen, an input file called 'neb.in' has to be present instead of 'neb.gjf' [default: %default]")
-    
+
     (opts, args) = parser.parse_args()
-    
+
     if len(args) < 1:
         print usage
         exit(-1)
@@ -477,7 +478,7 @@ if __name__ == "__main__":
     if opts.calculator == "bagel" and not exists("neb.json"):
         print "ERROR: BAGEL input script 'neb.json' not found in current folder!"
         exit(-1)
-        
+
     print """
     ****************************
     *                          *
@@ -486,10 +487,10 @@ if __name__ == "__main__":
     ****************************
     """
     print opts
-    
+
     # path to xyz-file
     xyz_file = args[0]
-    # 
+    #
     name = basename(xyz_file.replace(".xyz", ""))
     # Read the geometry from the xyz-file
     atomlists = XYZ.read_xyz(xyz_file)
@@ -514,5 +515,3 @@ if __name__ == "__main__":
 
     me = neb.splineMEProfile()
     mep = neb.splineMEPath()
-    
-    
