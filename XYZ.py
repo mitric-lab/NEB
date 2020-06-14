@@ -178,7 +178,6 @@ def xyz2txt(geometries, title="", units="Angstrom"):
                 current_title = " "
         else:
             current_title = title
-        current_title = str(type(title))
         txt += _append_xyz2txt(atoms, current_title, units)
     return txt
 
