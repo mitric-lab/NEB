@@ -11,7 +11,6 @@ from builtins import str
 from builtins import map
 from builtins import range
 from builtins import object
-from past.utils import old_div
 import numpy as np
 import numpy.linalg as la
 
@@ -51,7 +50,7 @@ def read_geometry(log_file):
                     break
                 else:
                     center, atnum, attype, x,y,z = l.strip().split()
-                    atoms[int(center)-1] = (int(atnum), old_div(np.array(list(map(float, [x,y,z]))),bohr_to_angs))
+                    atoms[int(center)-1] = (int(atnum), np.array(list(map(float, [x,y,z])))/bohr_to_angs)
             break
     fh.close()
     # convert to atomlist
@@ -95,7 +94,7 @@ def read_geometries_it(log_file):
                     break
                 else:
                     center, atnum, attype, x,y,z = l.strip().split()
-                    atoms[int(center)-1] = (int(atnum), old_div(np.array(list(map(float, [x,y,z]))),bohr_to_angs))
+                    atoms[int(center)-1] = (int(atnum), np.array(list(map(float, [x,y,z])))/bohr_to_angs)
             # convert to atomlist
             atomlist = list(atoms.values())
             yield atomlist
@@ -415,11 +414,11 @@ class UFF_handler(object):
                 Rij_vec = x[3*i:3*(i+1)] - x[3*j:3*(j+1)]
                 Rij = la.norm(Rij_vec)
                 # contribution to energy
-                Vij = old_div(self.mm_charges[i]*self.mm_charges[j],Rij)
+                Vij = self.mm_charges[i]*self.mm_charges[j]/Rij
                 enCoul += Vij
                 # contribution to the gradient
-                eij = old_div(Rij_vec,Rij) # unit vector
-                gij = old_div(Vij, Rij * eij)
+                eij = Rij_vec/Rij # unit vector
+                gij = Vij/ Rij * eij
                 gradCoul[3*i:3*(i+1)] -= gij
                 gradCoul[3*j:3*(j+1)] += gij
                 

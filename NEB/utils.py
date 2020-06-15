@@ -5,7 +5,6 @@ from __future__ import print_function
 from __future__ import division
 
 from builtins import range
-from past.utils import old_div
 from numpy import zeros, argsort
 import numpy as np
 import inspect
@@ -116,7 +115,7 @@ def argsort_2d(arr):
     assert len(arr.shape) == 2
     nrows,ncols = arr.shape
     sort_indx = argsort(arr, axis=None)
-    row_sort = old_div(sort_indx, ncols)
+    row_sort = sort_indx/ncols
     col_sort = sort_indx % ncols
     
     return row_sort, col_sort
@@ -208,7 +207,7 @@ def numerical_gradient(f,x0,h=1.0e-5):
         # symmetric gradient
         x_mhi = x0 - h*ei
         x_phi = x0 + h*ei
-        dfdx[i] = old_div((f(x_phi) - f(x_mhi)),(2.0*h))
+        dfdx[i] = (f(x_phi) - f(x_mhi))/(2.0*h)
     return dfdx
 
 def numerical_hessian(f,x0,h=1.0e-8):
@@ -243,12 +242,12 @@ def numerical_hessian(f,x0,h=1.0e-8):
                 x_mipj = x0 + h*(-ei + ej)
                 x_mimj = x0 - h*(ei + ej)
 
-                hessian[i,j] = old_div(( f(x_pipj) - f(x_pimj) - f(x_mipj) + f(x_mimj) ),(4*h*h))
+                hessian[i,j] = ( f(x_pipj) - f(x_pimj) - f(x_mipj) + f(x_mimj) )/(4*h*h)
                 hessian[j,i] = hessian[i,j]
         # i == j
         x_pi = x0 + h*ei
         x_mi = x0 - h*ei
-        hessian[i,i] = old_div(( f(x_pi) - 2*f0 + f(x_mi) ),(h*h))
+        hessian[i,i] = ( f(x_pi) - 2*f0 + f(x_mi) )/(h*h)
     return hessian
 
 def numerical_hessian_G(grad,x0,h=1.0e-8):
@@ -266,7 +265,7 @@ def numerical_hessian_G(grad,x0,h=1.0e-8):
         ei = zeros(n)
         ei[i] = 1.0
         x_phi = x0 + h*ei
-        hessian[i,:] = old_div((grad(x_phi) - g0),h)
+        hessian[i,:] = (grad(x_phi) - g0)/h
     # hessian should be symmetric
     
     return hessian

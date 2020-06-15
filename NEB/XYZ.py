@@ -17,7 +17,6 @@ from __future__ import absolute_import
 
 from builtins import map
 from builtins import range
-from past.utils import old_div
 from NEB.AtomicData import atom_names, atomic_number, bohr_to_angs, covalent_radii
 from numpy import zeros
 import numpy as np
@@ -69,7 +68,7 @@ def read_xyz_it(filename, units="Angstrom", fragment_id=atomic_number):
             atno = fragment_id(words[0])
             x,y,z = list(map(float,words[1:4]))
             if units == "Angstrom":
-                x,y,z = [old_div(c,bohr_to_angs) for c in [x,y,z]]
+                x,y,z = [c/bohr_to_angs for c in [x,y,z]]
             atoms.append((atno,(x,y,z)))
         igeo += 1
         yield atoms
@@ -266,7 +265,7 @@ def read_initial_conditions(filename, units="Angstrom", fragment_id=atomic_numbe
         atno = fragment_id(words[0])
         x,y,z = list(map(float,words[1:4]))
         if units == "Angstrom":
-            x,y,z = [old_div(c,bohr_to_angs) for c in [x,y,z]]
+            x,y,z = [c/bohr_to_angs for c in [x,y,z]]
         coords.append((atno,(x,y,z)))
     # read velocities
     vels = []
@@ -276,7 +275,7 @@ def read_initial_conditions(filename, units="Angstrom", fragment_id=atomic_numbe
         atno = coords[i][0]
         vx,vy,vz = list(map(float,words))
         if units == "Angstrom":
-            vx,vy,vz = [old_div(c,bohr_to_angs) for c in [vx,vy,vz]]
+            vx,vy,vz = [c/bohr_to_angs for c in [vx,vy,vz]]
         vels.append((atno,(vx,vy,vz)))
     return coords, vels
 
@@ -359,7 +358,7 @@ def read_charges(chg_file, units="Angstrom"):
         Zat = atomic_number(words[0])
         x,y,z = list(map(float, words[1:4]))
         if units == "Angstrom":
-            x,y,z = [old_div(c,bohr_to_angs) for c in [x,y,z]]
+            x,y,z = [c/bohr_to_angs for c in [x,y,z]]
         q = float(words[4])
 
         atomlist.append( (Zat, (x,y,z)) )
@@ -519,8 +518,8 @@ def connectivity_matrix(atomlist, search_neighbours=None, thresh=1.3, hydrogen_b
 
                     # hydrogen-donor-acceptor angle
                     # angle angle(hydrogen --> donor --> acceptor)
-                    angle = np.arccos( old_div(np.dot(r_donor_H,r_donor_acceptor),(la.norm(r_donor_H)*la.norm(r_donor_acceptor))) )
-                    if old_div(angle*180.0,np.pi) < max_H_donor_acceptor_angle:
+                    angle = np.arccos( np.dot(r_donor_H,r_donor_acceptor)/(la.norm(r_donor_H)*la.norm(r_donor_acceptor)) )
+                    if angle*180.0/np.pi < max_H_donor_acceptor_angle:
                         # hydrogen bond found
                         # donor/acceptor -- H
                         Con[A,C] = 1
@@ -531,7 +530,7 @@ def connectivity_matrix(atomlist, search_neighbours=None, thresh=1.3, hydrogen_b
 
                         if debug > 0:
                             print("hydrogen bond %s(%2.d)--H(%2.d)--%s(%2.d)     distance= %8.4f Ang    angle= %8.4f degrees" \
-                            % (atom_names[ZA-1].upper(), A+1, C+1, atom_names[ZB-1].upper(), B+1, RAB*bohr_to_angs, old_div(angle*180.0,np.pi)))
+                            % (atom_names[ZA-1].upper(), A+1, C+1, atom_names[ZB-1].upper(), B+1, RAB*bohr_to_angs, angle*180.0/np.pi))
 
         #
     return Con

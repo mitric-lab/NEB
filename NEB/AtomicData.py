@@ -1,5 +1,4 @@
 from __future__ import division
-from past.utils import old_div
 bohr_to_angs = 0.529177249
 hartree_to_eV = 27.211396132
 hartree_to_nm = 45.563352527    # lambda (in nm) = hartree_to_nm / (energy in Hartree)
@@ -69,7 +68,7 @@ def atomlist2masses(atomlist):
 
 # atomic radii taken from Cordero el.al.,"Covalent radii revisited", Dalton Trans., 2008, 2832-2838
 # in bohr, in the paper the values are given in Angstrom with 2 decimals
-covalent_radii = {k : old_div(v,bohr_to_angs) for (k,v) in
+covalent_radii = {k : v/bohr_to_angs for (k,v) in
                   list({
     "h" : 0.31, "he": 0.28, "li": 1.28, "be": 0.96, "b" : 0.84,
     "c" : 0.76, "n" : 0.71, "o" : 0.66, "f" : 0.57, "ne": 0.58,
@@ -95,7 +94,7 @@ covalent_radii = {k : old_div(v,bohr_to_angs) for (k,v) in
 
 # Slater radii (converted to bohr) taken from table I of
 # J. Slater, "Atomic Radii in Crystals", J.Chem.Phys. volume 41, number 10, 1964, pages 3199-3204
-slater_radii = {k : old_div(v,bohr_to_angs) for (k,v) in
+slater_radii = {k : v/bohr_to_angs for (k,v) in
                 list({
                     'h': 0.25,
 # There is not radius for helium in Slater's article. Instead we take
@@ -122,7 +121,7 @@ slater_radii = {k : old_div(v,bohr_to_angs) for (k,v) in
 #     J. Phys. Chem., 1964, 68 (3), pp 441-451
 #
 # vdW radii (converted to bohr)
-vdw_radii = {k: old_div(v,bohr_to_angs) for (k,v) in  
+vdw_radii = {k: v/bohr_to_angs for (k,v) in  
                  list({'h': 1.10,                                                                     'he': 1.40,
                   'li': 1.81, 'be': 1.53, 'b': 1.92, 'c': 1.70, 'n': 1.55, 'o': 1.52, 'f': 1.47, 'ne': 1.54,
                   'na': 2.27, 'mg': 1.73, 'al':1.84, 'si':2.10, 'p': 1.80, 's': 1.80, 'cl':1.75, 'ar': 1.88,
