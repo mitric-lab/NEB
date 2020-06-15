@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/hochej/software/anaconda2/bin/python
 """
 Optimize a reaction path using the nudged elastic band algorithm. An electronic structure
 method implemented in Gaussian 09/16 or Q-Chem is used to drive the calculation.
@@ -14,7 +14,6 @@ from builtins import str
 from builtins import zip
 from builtins import range
 from builtins import object
-from past.utils import old_div
 
 import argparse
 
@@ -257,7 +256,7 @@ class NEB(object):
                     self.R[i] = Rnext[i]
                 else:
                     # damped Verlet algorithm
-                    Rnext[i] = (2.0-friction)*self.R[i] - (1.0-friction)*Rlast[i] + old_div(self.effF[i],self.mass*pow(dt,2))
+                    Rnext[i] = (2.0-friction)*self.R[i] - (1.0-friction)*Rlast[i] + self.effF[i]/self.mass*pow(dt,2)
                     Rlast[i] = self.R[i]
                     self.R[i] = Rnext[i]
             if self._converged(tolerance):
@@ -311,7 +310,7 @@ class NEB(object):
                 t = self.R[i] - self.R[i-1]
                 x[i] = x[i-1] + norm(t)
             f[i] = self.V[i]
-            f1[i] = dot(self.F[i], old_div(t,norm(t)))
+            f1[i] = dot(self.F[i], t/norm(t))
         def MEfunc(rxc):
             """
             potential energy along minimum energy path.
@@ -329,7 +328,7 @@ class NEB(object):
                 return f[ic]
             dx = norm(x[ic+1]-x[ic])
             df = f[ic+1]-f[ic]
-            a = old_div((s-x[ic]),dx)
+            a = (s-x[ic])/dx
             assert 0.0 <= a <= 1.0
             fa = (1-a)*f[ic] + a*f[ic+1] + a*(1-a)*((1-a)*(-f1[ic]*dx-df) + a*(+f1[ic+1]*dx + df))
             return fa
@@ -372,7 +371,7 @@ class NEB(object):
                 return images[ic]
             dx = norm(x[ic+1]-x[ic])
             assert x[ic] <= s <= x[ic+1]
-            a = old_div((s-x[ic]),dx)
+            a = (s-x[ic])/dx
             assert 0.0 <= a <= 1.0
             geom = (1-a)*images[ic] + a*images[ic+1]
             return geom

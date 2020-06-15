@@ -1,0 +1,13 @@
+Metadata-Version: 1.1
+Name: NEB
+Version: 0.0.1
+Summary: optimize a reaction path using the nudged elastic band algorithm
+Home-page: https://github.com/hochej/NEB
+Author: Joscha Hoche
+Author-email: joscha.hoche@uni-wuerzburg.de
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3.7
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)
+Classifier: Operating System :: OS Independent
