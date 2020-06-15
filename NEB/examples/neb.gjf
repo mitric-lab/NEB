@@ -1,0 +1,13 @@
+%Chk=grad.chk
+%Nproc=1
+%Mem=1Gb
+# B3LYP/def2SVP Force
+NoSymm 
+
+s0 gradient
+
+0 1
+@geom
+
+
+
