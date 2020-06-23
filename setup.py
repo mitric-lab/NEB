@@ -19,8 +19,8 @@ setup(name='NEB',
       packages=find_packages(),
       install_requires=[
           'numpy',
-          'multiprocessing',
-          'argparse'
+          'argparse',
+          'future'
       ],
       classifiers=[
           'Programming Language :: Python :: 3.7',

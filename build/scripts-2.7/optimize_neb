@@ -456,7 +456,7 @@ if __name__ == "__main__":
                       help="Time step for integrating damped dynamics [default: 0.1]")
     parser.add_argument("-f", "--friction", dest="friction", type=float, default=0.2,
                       help="damping coefficient between 0.0 (no damping) and 1.0 (do not use such high damping) [default: 0.2]")
-    parser.add_argument("-e", "--optimize_endpoints", dest="optimize_endpoints", action="store_true", default="False",
+    parser.add_argument("-e", "--optimize_endpoints", dest="optimize_endpoints", action="store_true", default=False, type=bool,
                       help="Optimize the endpoints of the path as well [default: False]")
     parser.add_argument("-s", "--scratch_dir", dest="scratch_dir", type=str, default="/sscratch/$PBS_JOBID",
                       help="Path to scratch directory [default: /sscratch/$PBS_JOBID]")
@@ -473,9 +473,9 @@ if __name__ == "__main__":
         exit(-1)
     """
     try:
-        os.environ["PBS_JOBID"]
+        os.environ["SLURM_JOBID"]
     except KeyError:
-        raise KeyError("This script can only be run through a PBS or SLURM queue, environment variable PBS_JOBID not found!")
+        raise KeyError("This script can only be run through a SLURM queue, environment variable SLURM_JOBID not found!")
 
     if args.calculator == "g09" and not exists("neb.gjf"):
         print("ERROR: Gaussian input script 'neb.gjf' not found in current folder!")

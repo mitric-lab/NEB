@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/hochej/software/anaconda3/bin/python3.7
 """
 Optimize a reaction path using the nudged elastic band algorithm. An electronic structure
 method implemented in Gaussian 09/16 or Q-Chem is used to drive the calculation.
@@ -456,7 +456,7 @@ if __name__ == "__main__":
                       help="Time step for integrating damped dynamics [default: 0.1]")
     parser.add_argument("-f", "--friction", dest="friction", type=float, default=0.2,
                       help="damping coefficient between 0.0 (no damping) and 1.0 (do not use such high damping) [default: 0.2]")
-    parser.add_argument("-e", "--optimize_endpoints", dest="optimize_endpoints", default=False, type=bool,
+    parser.add_argument("-e", "--optimize_endpoints", dest="optimize_endpoints", action="store_true", default=False, type=bool,
                       help="Optimize the endpoints of the path as well [default: False]")
     parser.add_argument("-s", "--scratch_dir", dest="scratch_dir", type=str, default="/sscratch/$PBS_JOBID",
                       help="Path to scratch directory [default: /sscratch/$PBS_JOBID]")

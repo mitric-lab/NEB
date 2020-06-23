@@ -1,8 +1,8 @@
 """
 odd bits and pieces of code
 """
-from __future__ import print_function
-from __future__ import division
+
+
 
 from builtins import range
 from numpy import zeros, argsort
@@ -303,10 +303,6 @@ def call_with_opts_from_dict(func):
     
     _f.__name__ = func.__name__
     return _f
-
-# Old parts of the code still import the option parser from this module.
-# In order not to break this we have to import the option parser here.
-from DFTB.optparse import OptionParserFuncWrapper
 
 
 if __name__ == "__main__":

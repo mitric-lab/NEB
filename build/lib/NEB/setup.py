@@ -7,7 +7,6 @@ To run the package as standalone
 from setuptools import setup
  
 
-packages = ['geodesic_interpolate']
 
 setup(
   name='NEB',
@@ -16,7 +15,6 @@ setup(
   packages=packages,
   entry_points = {
     'console_scripts': [
-      'geodesic_interpolate=geodesic_interpolate.__main__:main',
       'optimize_neb=NEB.__main__:main'
     ],
   },

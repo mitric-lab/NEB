@@ -7,7 +7,6 @@ NEB/XYZ.py
 NEB/__init__.py
 NEB/calculators.py
 NEB/optimize_neb
-NEB/setup.py
 NEB/utils.py
 NEB.egg-info/PKG-INFO
 NEB.egg-info/SOURCES.txt
