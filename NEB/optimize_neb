@@ -58,7 +58,7 @@ class BFGS(object):
         bohr_to_angs = 0.529177249
 
         if maxstep is None:
-            self.maxstep = 0.2 / bohr_to_angs
+            self.maxstep = 0.1 / bohr_to_angs
         else:
             self.maxstep = maxstep / bohr_to_angs
 
@@ -67,7 +67,7 @@ class BFGS(object):
                           'the maximum step size: %.1f Å' % maxstep)
 
         if alpha is None:
-            self.alpha = 50.0
+            self.alpha = 100.0
         else:
             self.alpha = alpha
 
@@ -324,8 +324,8 @@ class NEB(object):
             return False
 
     def findMEP(self, tolerance=0.001, nsteps=1000, dt=0.01, friction=0.05,
-                integrator="verlet", optimize_endpoints=True, maxstep=0.2,
-                alpha=60):
+                integrator="verlet", optimize_endpoints=True, maxstep=0.1,
+                alpha=100):
         """
         find minimum energy path by allowing the band to move with some friction to
         damp out oscillations. After the optimization the optimally distributed images
