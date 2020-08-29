@@ -51,7 +51,7 @@ class BFGS(object):
 
         alpha: float
             Initial guess for the Hessian (curvature of energy surface). A
-            conservative value of 70.0 is the default, but number of needed
+            conservative value of 60.0 is the default, but number of needed
             steps to converge might be less if a lower value is used. However,
             a lower value also means risk of instability.
         """
@@ -67,7 +67,7 @@ class BFGS(object):
                           'the maximum step size: %.1f Å' % maxstep)
 
         if alpha is None:
-            self.alpha = 70.0
+            self.alpha = 50.0
         else:
             self.alpha = alpha
 
@@ -324,8 +324,8 @@ class NEB(object):
             return False
 
     def findMEP(self, tolerance=0.001, nsteps=1000, dt=0.01, friction=0.05,
-                integrator="verlet", optimize_endpoints=True, maxstep=0.1,
-                alpha=70):
+                integrator="verlet", optimize_endpoints=True, maxstep=0.2,
+                alpha=60):
         """
         find minimum energy path by allowing the band to move with some friction to
         damp out oscillations. After the optimization the optimally distributed images
