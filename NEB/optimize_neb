@@ -577,6 +577,8 @@ if __name__ == "__main__":
                       help="Path to scratch directory [default: /sscratch/$PBS_JOBID]")
     parser.add_argument("--print_every", dest="print_every", type=int, default=1,
                       help="Print current path and energies every N-th step [default: 1]")
+    parser.add_argument("--integrator", dest="integrator", type=str, default="bfgs",
+                      help="Choose the integrator for the optimization (verlet or bfgs) [default: bfgs]")
     parser.add_argument("--calculator", dest="calculator", type=str, default="g16",
                       help="Choose electronic structure program, 'g09' or 'g16' (Gaussian) or 'qchem'. If Qchem is chosen, an input file called 'neb.in' has to be present instead of 'neb.gjf' [default: g16]")
 
@@ -639,7 +641,7 @@ if __name__ == "__main__":
     neb.addImagesLinearly(2)
     # save initial path
     neb.plot()
-    neb.findMEP(tolerance=args.tolerance, nsteps=args.nsteps,
+    neb.findMEP(tolerance=args.tolerance, nsteps=args.nsteps, integrator=args.integrator,
                 dt=args.dt, friction=args.friction, optimize_endpoints=args.optimize_endpoints)
 
     me = neb.splineMEProfile()
