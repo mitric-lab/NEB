@@ -343,7 +343,7 @@ class NEB(object):
         self.optimize_endpoints = optimize_endpoints
         if integrator== "bfgs":
             natoms = int(len(self.R[0]) / 3)
-            optimizer = BFGS(natoms, maxstep, alpha)
+            optimizer = [BFGS(natoms, maxstep, alpha) for _ in range(0, len(self.R))]
         Rlast = [Ri for Ri in self.R] # R(t-dt), R[0] and R[-1] stay always the same
         Rnext = [Ri for Ri in self.R] # R(t+dt)
         for self.istep in range(0, nsteps):
@@ -369,7 +369,7 @@ class NEB(object):
                         self.R[i] = Rnext[i]
                 elif integrator == "bfgs":
                     # BFGS step
-                    Rnext[i] = optimizer.step(self.R[i], self.effF[i])
+                    Rnext[i] = optimizer[i].step(self.R[i], self.effF[i])
                     Rlast[i] = self.R[i]
                     self.R[i] = Rnext[i]
 
