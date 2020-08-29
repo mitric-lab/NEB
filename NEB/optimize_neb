@@ -342,7 +342,7 @@ class NEB(object):
         optimize_endpoints: if True, end points of band move towards energy minima.
         """
         self.optimize_endpoints = optimize_endpoints
-        if algorithm == "bfgs":
+        if integrator== "bfgs":
             natoms = int(len(self.R[0]) / 3)
             optimizer = BFGS(natoms, maxstep, alpha)
         Rlast = [Ri for Ri in self.R] # R(t-dt), R[0] and R[-1] stay always the same
@@ -357,7 +357,7 @@ class NEB(object):
                 if i in [0, len(self.R)-1] and (self.optimize_endpoints == False):
                     # as effF[0] = 0 and effF[-1] = 0 this line should not be neccessary ????
                     continue
-                if algorithm == "verlet":
+                if integrator== "verlet":
                     if self.istep == 0:
                         # Euler step, without initial velocity
                         Rnext[i] = self.R[i] + 0.5*self.effF[i]/self.mass*pow(dt,2)
@@ -368,7 +368,7 @@ class NEB(object):
                         Rnext[i] = (2.0-friction)*self.R[i] - (1.0-friction)*Rlast[i] + self.effF[i]/self.mass*pow(dt,2)
                         Rlast[i] = self.R[i]
                         self.R[i] = Rnext[i]
-                elif algorithm == "bfgs":
+                elif integrator == "bfgs":
                     # BFGS step
                     Rnext[i] = optimizer.step(self.R[i], self.effF[i])
                     Rlast[i] = self.R[i]
