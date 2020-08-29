@@ -37,7 +37,7 @@ def run_calculator_map(args):
 
 
 class BFGS(object):
-      def __init__(self, natoms, maxstep=None, alpha=None):
+    def __init__(self, natoms, maxstep=None, alpha=None):
         """BFGS optimizer.
 
         Parameters:
