@@ -92,6 +92,9 @@ Optional arguments:
 * `--print_every=PRINT_EVERY`
                      Print current path and energies every N-th step
                      [default: 1]
+* `--integrator=INTEGRATOR`
+                      Choose the integration algorithm for the optimization steps.
+                      Use either 'verlet' or 'bfgs'.
 * `--calculator=CALCULATOR`
                      Choose electronic structure program, 'g09' or 'g16'
                      (Gaussian) or 'qchem'. If Q-Chem is chosen, an input
