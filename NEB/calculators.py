@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-functions for submitting QChem or Gaussian jobs to the queue, 
+functions for submitting QChem or Gaussian jobs to the queue,
 requires the scripts 'run_gaussian_09.sh', 'run_gaussian_16.sh' and 'run_qchem.sh'
 """
 from __future__ import print_function
@@ -59,7 +59,7 @@ def run_gaussian_09(atomlist, directory=".", nprocs=1, mem="6Gb"):
     print("Cartesian Gaussian 09 gradient in %s" % directory)
     print(grad)
     ###
-    
+
     return en, grad
 
 def run_gaussian_16(atomlist, directory=".", nprocs=1, mem="6Gb"):
@@ -91,6 +91,7 @@ def run_gaussian_16(atomlist, directory=".", nprocs=1, mem="6Gb"):
     # remove number of atoms and comment
     os.system("cd %s; tail -n +3 geometry.xyz > geom" % directory)
     # calculate electronic structure
+    print(os.listdir(directory))
     #print "running Gaussian..."
     # submit calculation to the cluster
     ret  = os.system(r"cd %s; run_gaussian_16.sh --wait --fchk neb.gjf %d %s" % (directory, nprocs, mem))
@@ -140,7 +141,7 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     for Zat,pos in atomlist:
         l = "%2s    %+12.10f   %+12.10f   %+12.10f \n" % (AtomicData.atom_names[Zat-1].upper(), pos[0]*c, pos[1]*c, pos[2]*c)
         geom_lines.append(l)
-    
+
     with open(qchem_file) as fh:
         lines = fh.readlines()
 
@@ -160,7 +161,7 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     with open(qchem_file, "w") as fh:
         for l in lines:
             fh.write(l)
-    
+
     # calculate electronic structure
     #print "running QChem ..."
     # submit calculation to the cluster
@@ -171,16 +172,16 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     en = subprocess.check_output("cd %s; grep 'Total energy' neb.out | awk '{print $9}'" % directory, shell=True).strip()
     assert en != "", "Total energy not found in QChem output, see %s/neb.out!" % directory
     en = float(en)
-    
+
     # read gradient from checkpoint files
     data = Checkpoint.parseCheckpointFile("%s/neb.fchk" % directory)
     grad = (-1.0) * data["_Cartesian_Forces"]
-    
+
     ### DEBUG
     print("Cartesian QChem gradient in %s" % directory)
     print(grad)
     ###
-    
+
     return en, grad
 
 def run_bagel(atomlist, directory=".", nprocs=1, mem="6Gb"):
@@ -253,10 +254,10 @@ def run_bagel(atomlist, directory=".", nprocs=1, mem="6Gb"):
             parts = fh.readline().split()
             x,y,z = list(map(float, parts[1:4]))
             grad[3*i:3*(i+1)] = x,y,z
-            
+
     return en, grad
 
-    
+
 def get_calculator(name):
     """
     retrieve function for calculating electronic structure (energy + gradient)
@@ -271,4 +272,3 @@ def get_calculator(name):
         return run_bagel
     else:
         raise ValueError("Unknown calculator '%s'" % name)
-    
