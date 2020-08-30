@@ -42,13 +42,13 @@ while :; do
 	-w|--wait)
 	    # Wait for the job to finish and return exit code 1 if the Gaussian
 	    # calculation failed and 0 if it succeded.
-	    echo "Script will hang until the job finishes."
+	    #echo "Script will hang until the job finishes."
 	    sbatch_options="${sbatch_options} --wait"
 	    shift
 	    ;;
 	-f|--fchk)
 	    # Convert checkpoint files to fromatted files.
-	    echo "Checkpoint files will be formatted."
+	    #echo "Checkpoint files will be formatted."
 	    option_fchk="yes"
 	    shift
 	    ;;
@@ -85,7 +85,7 @@ rundir=$(dirname $job)
 # The submit script is sent directly to stdin of qsub. Note
 # that all '$' signs have to be escaped ('\$') inside the HERE-document.
 
-echo "submitting '$job' (using $nproc processors and $mem of memory)"
+#echo "submitting '$job' (using $nproc processors and $mem of memory)"
 
 # submit to slurm queue
 sbatch $sbatch_options <<EOF

@@ -56,8 +56,8 @@ def run_gaussian_09(atomlist, directory=".", nprocs=1, mem="6Gb"):
     grad = data["_Cartesian_Gradient"]
 
     ### DEBUG
-    print("Cartesian Gaussian 09 gradient in %s" % directory)
-    print(grad)
+    # print("Cartesian Gaussian 09 gradient in %s" % directory)
+    # print(grad)
     ###
 
     return en, grad
@@ -91,7 +91,6 @@ def run_gaussian_16(atomlist, directory=".", nprocs=1, mem="6Gb"):
     # remove number of atoms and comment
     os.system("cd %s; tail -n +3 geometry.xyz > geom" % directory)
     # calculate electronic structure
-    print(os.listdir(directory))
     #print "running Gaussian..."
     # submit calculation to the cluster
     ret  = os.system(r"cd %s; run_gaussian_16.sh --wait --fchk neb.gjf %d %s" % (directory, nprocs, mem))
@@ -103,8 +102,8 @@ def run_gaussian_16(atomlist, directory=".", nprocs=1, mem="6Gb"):
     grad = data["_Cartesian_Gradient"]
 
     ### DEBUG
-    print("Cartesian Gaussian 09 gradient in %s" % directory)
-    print(grad)
+    # print("Cartesian Gaussian 09 gradient in %s" % directory)
+    # print(grad)
     ###
 
     return en, grad
@@ -178,8 +177,8 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     grad = (-1.0) * data["_Cartesian_Forces"]
 
     ### DEBUG
-    print("Cartesian QChem gradient in %s" % directory)
-    print(grad)
+    # print("Cartesian QChem gradient in %s" % directory)
+    # print(grad)
     ###
 
     return en, grad
