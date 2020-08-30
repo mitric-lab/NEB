@@ -567,17 +567,21 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--nsteps", dest="nsteps", type=int, default=1000,
                       help="Run damped dynamics for NSTEPS steps [default: 10000]")
     parser.add_argument("--dt",           dest="dt", type=float, default=0.1,
-                      help="Time step for integrating damped dynamics [default: 0.1]")
+                      help="Time step for integrating damped dynamics (only used if integrator=verlet)[default: 0.1]")
     parser.add_argument("-f", "--friction", dest="friction", type=float, default=0.2,
                       help="damping coefficient between 0.0 (no damping) and 1.0 (do not use such high damping) [default: 0.2]")
     parser.add_argument("-e", "--optimize_endpoints", dest="optimize_endpoints", action="store_true",
                       help="Optimize the endpoints of the path as well [default: False]")
-    parser.add_argument("-s", "--scratch_dir", dest="scratch_dir", type=str, default="/sscratch/$PBS_JOBID",
-                      help="Path to scratch directory [default: /sscratch/$PBS_JOBID]")
+    parser.add_argument("-s", "--scratch_dir", dest="scratch_dir", type=str, default="/sscratch/${SLURM_JOBID}",
+                      help="Path to scratch directory [default: /sscratch/${SLURM_JOBID}]")
     parser.add_argument("--print_every", dest="print_every", type=int, default=1,
                       help="Print current path and energies every N-th step [default: 1]")
     parser.add_argument("--integrator", dest="integrator", type=str, default="bfgs",
                       help="Choose the integrator for the optimization (verlet or bfgs) [default: bfgs]")
+    parser.add_argument("--maxstep", dest="maxstep", type=float, default="0.2",
+                      help="Maximum step length for BFGS optimization in Angstrom [default: 0.2]")
+    parser.add_argument("--alpha", dest="alpha", type=float, default="60",
+                          help="Values of initial Hessian, we use alpha * I as a guess for the Hessian [default: 60]")
     parser.add_argument("--calculator", dest="calculator", type=str, default="g16",
                       help="Choose electronic structure program, 'g09' or 'g16' (Gaussian) or 'qchem'. If Qchem is chosen, an input file called 'neb.in' has to be present instead of 'neb.gjf' [default: g16]")
 
@@ -641,7 +645,8 @@ if __name__ == "__main__":
     # save initial path
     neb.plot()
     neb.findMEP(tolerance=args.tolerance, nsteps=args.nsteps, integrator=args.integrator,
-                dt=args.dt, friction=args.friction, optimize_endpoints=args.optimize_endpoints)
+                dt=args.dt, friction=args.friction, optimize_endpoints=args.optimize_endpoints,
+                maxstep=args.maxstep, alpha=args.alpha)
 
     me = neb.splineMEProfile()
     mep = neb.splineMEPath()
