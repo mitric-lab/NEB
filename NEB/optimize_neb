@@ -369,7 +369,7 @@ class NEB(object):
                         self.R[i] = Rnext[i]
                 elif integrator == "bfgs":
                     # BFGS step
-                    Rnext[i] = optimizer[i].step(self.R[i], self.effF[i])
+                    Rnext[i] = optimizer[i].step(self.R[i], self.effF[i]/self.mass)
                     Rlast[i] = self.R[i]
                     self.R[i] = Rnext[i]
 
