@@ -62,12 +62,12 @@ class BFGS(object):
         else:
             self.maxstep = maxstep / bohr_to_angs
 
-        if self.maxstep > 1.0:
+        if self.maxstep > 0.5:
             print('You are using a *very* large value for '
                           'the maximum step size: %.1f Å' % maxstep)
 
         if alpha is None:
-            self.alpha = 100.0
+            self.alpha = 50.0
         else:
             self.alpha = alpha
 
@@ -373,11 +373,11 @@ class NEB(object):
                     # BFGS step
                     if autostep:
                         if self.avgForce > 0.05:
-                            optimizer[i].maxstep = 0.25 / bohr_to_angs
+                            optimizer[i].maxstep = 0.20 / bohr_to_angs
                         if 0.04 < self.avgForce < 0.05:
-                            optimizer[i].maxstep = 0.15 / bohr_to_angs
-                        if 0.02 < self.avgForce < 0.04:
-                            optmizer[i].maxstep = 0.08 / bohr_to_angs
+                            optimizer[i].maxstep = 0.12 / bohr_to_angs
+                        if 0.02 < self.avgForce < 0.035:
+                            optmizer[i].maxstep = 0.06 / bohr_to_angs
                     Rnext[i] = optimizer[i].step(self.R[i], self.effF[i]/self.mass)
                     Rlast[i] = self.R[i]
                     self.R[i] = Rnext[i]
