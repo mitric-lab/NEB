@@ -71,6 +71,7 @@ class BFGS(object):
         else:
             self.alpha = alpha
 
+        self.natoms = natoms
         # initial hessian
         self.H0 = None
         self.H = None
@@ -120,7 +121,7 @@ class BFGS(object):
     def update(self, r, f, r0, f0):
         if self.H0 is None:
             g = np.linalg.norm(f)
-            self.H0 = np.eye(3 * natoms) * g / self.maxstep
+            self.H0 = np.eye(3 * self.natoms) * g / self.maxstep
         if self.H is None:
             self.H = self.H0
             return
