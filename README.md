@@ -95,6 +95,19 @@ Optional arguments:
 * `--integrator=INTEGRATOR`
                       Choose the integration algorithm for the optimization steps.
                       Use either 'verlet' or 'bfgs'.
+
+* `--maxstep=MAXSTEP`
+                      Maximum step length for BFGS optimization in Angstrom
+                      [default: 0.2]
+
+* `-as`, `--autostep`
+                      Scale the maximum steplength during the optimization
+                      [default: False]
+
+* `--alpha`
+                      Values of initial Hessian, we use alpha * I as a guess
+                      for the Hessian [default: 60]
+
 * `--calculator=CALCULATOR`
                      Choose electronic structure program, 'g09' or 'g16'
                      (Gaussian) or 'qchem'. If Q-Chem is chosen, an input
