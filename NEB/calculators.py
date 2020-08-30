@@ -86,9 +86,23 @@ def run_gaussian_16(atomlist, directory=".", nprocs=1, mem="6Gb"):
     # create directory if it does not exist already
     os.system("mkdir -p %s" % directory)
     os.system("cp neb.gjf %s/neb.gjf" % directory)
+
+    with open("%s/neb.gjf" % directory, "w") as new_file:
+        with open("%s/neb.gjf" % directory,) as old_file:
+            lines = old_file.readlines()
+            try:
+                index = lines.index("@geom\n")
+            except:
+                index = 9
+            lines.remove("@geom\n")
+            c = AtomicData.bohr_to_angs
+            for idx, (Zat, pos) in enumerate(atomlist):
+                l = "%2s    %+12.10f   %+12.10f   %+12.10f \n" % (AtomicData.atom_names[Zat-1].upper(), pos[0]*c, pos[1]*c, pos[2]*c)
+                lines.insert(idx + index, l)
+        new_file.writelines(lines)
     # update geometry
     XYZ.write_xyz("%s/geometry.xyz" % directory, [atomlist])
-    XYZ.write_geom("%s/geom" % directory, [atomlist])
+    #XYZ.write_geom("%s/geom" % directory, [atomlist])
     # remove number of atoms and comment
     #os.system("cd %s; tail -n +3 geometry.xyz > geom" % directory)
     # calculate electronic structure
