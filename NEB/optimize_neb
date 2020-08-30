@@ -657,7 +657,7 @@ if __name__ == "__main__":
     neb.plot()
     neb.findMEP(tolerance=args.tolerance, nsteps=args.nsteps, integrator=args.integrator,
                 dt=args.dt, friction=args.friction, optimize_endpoints=args.optimize_endpoints,
-                maxstep=args.maxstep, alpha=args.alpha, args.autostep)
+                maxstep=args.maxstep, alpha=args.alpha, autostep=args.autostep)
 
     me = neb.splineMEProfile()
     mep = neb.splineMEPath()
