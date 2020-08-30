@@ -26,7 +26,7 @@ import numpy.linalg as la
 from numpy.linalg import norm
 from multiprocessing import Pool
 import itertools
-
+import gc
 import os.path
 
 # This is a wrapper function for making run_calculator compatible with Pool.map(...)
@@ -217,6 +217,7 @@ class NEB(object):
         self.V = [None for Ri in self.R]  # potential energies of each image
         self.F = [None for Ri in self.R]  # true forces acting on each image
 
+        gc.collect()
         # additional keywords controlling electronic structure calculation
         kwds = { "nprocs" : self.procs_per_image,
                  "mem": self.mem_per_image }

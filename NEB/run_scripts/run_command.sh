@@ -21,7 +21,7 @@ then
     echo " "
     echo "    The output is written to   ls_-l___wc_-l__sleep_10.out  in the current folder."
     echo " "
-    exit 
+    exit
 fi
 
 cmd=$1
@@ -37,18 +37,9 @@ mem=${3:-6Gb}
 # The submit script is sent directly to stdin of qsub. Note
 # that all '$' signs have to be escaped ('\$') inside the HERE-document.
 
-# submit to PBS queue
-#qsub <<EOF
 # submit to slurm queue
 sbatch <<EOF
 #!/bin/bash
-
-# for Torque
-#PBS -q batch
-#PBS -l nodes=1:ppn=${nproc},vmem=${mem},mem=${mem}
-#PBS -N ${name}
-#PBS -jeo 
-#PBS -e ${out} 
 
 # for Slurm
 #SBATCH --nodes=1
@@ -57,41 +48,37 @@ sbatch <<EOF
 #SBATCH --job-name=${name}
 #SBATCH --output=${out}
 
-#NCPU=\$(wc -l < \$PBS_NODEFILE)
-NNODES=\$(uniq \$PBS_NODEFILE | wc -l)
+#NCPU=\$(wc -l < \$SLURM_JOB_NODELIST)
+NNODES=\$(uniq \$SLURM_JOB_NODELIST | wc -l)
 DATE=\$(date)
-SERVER=\$PBS_O_HOST
-SOURCEDIR=\${PBS_O_WORKDIR}
+SERVER=\$SLURM_SUBMIT_HOST
+SOURCEDIR=\${SLURM_SUBMIT_DIR}
 
 echo ------------------------------------------------------
-echo PBS_O_HOST: \$PBS_O_HOST
-echo PBS_O_QUEUE: \$PBS_O_QUEUE
-echo PBS_QUEUE: \$PBS_O_QUEUE
-echo PBS_ENVIRONMENT: \$PBS_ENVIRONMENT
-echo PBS_O_HOME: \$PBS_O_HOME
-echo PBS_O_PATH: \$PBS_O_PATH
-echo PBS_JOBNAME: \$PBS_JOBNAME
-echo PBS_JOBID: \$PBS_JOBID
-echo PBS_ARRAYID: \$PBS_ARRAYID
-echo PBS_O_WORKDIR: \$PBS_O_WORKDIR
-echo PBS_NODEFILE: \$PBS_NODEFILE
-echo PBS_NUM_PPN: \$PBS_NUM_PPN
+echo HOST: \$SLURM_SUBMIT_HOST
+echo PARTITION: \$SLURM_JOB_PARTITION
+echo HOME: \$HOME
+echo PATH: \$PATH
+echo JOBNAME: \$SLURM_JOB_NAME
+echo JOBID: \$SLURM_JOB_ID
+echo ARRAYID: \$SLURM_ARRAY_TASK_ID
+echo WORKDIR: \$SLURM_SUBMIT_DIR
+echo NODEFILE: \$SLURM_JOB_NODELIST
+echo NUM_PPN: \$SLURM_JOB_CPUS_PER_NODE
 echo ------------------------------------------------------
 echo WORKDIR: \$WORKDIR
 echo SOURCEDIR: \$SOURCEDIR
-echo HOSTNAME: \$(hostname)
 echo ------------------------------------------------------
 echo "This job is allocated on '\${NCPU}' cpu(s) on \$NNODES"
 echo "Job is running on node(s):"
-cat \$PBS_NODEFILE
-echo ------------------------------------------------------
+cat \$SLURM_JOB_NODELIST---------------------------------
 echo Start date: \$DATE
 echo ------------------------------------------------------
 
 # Here required modules are loaded and environment variables are set
 module load dftbaby
 
-cd \$PBS_O_WORKDIR
+cd \$SLURM_SUBMIT_DIR
 
 echo "Running command '$cmd'"
 echo "   ##### START #####"

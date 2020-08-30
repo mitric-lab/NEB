@@ -70,20 +70,9 @@ rundir=$(dirname $job)
 
 echo "submitting '$job' (using $nproc processors and $mem of memory)"
 
-# The submit script is sent directly to stdin of qsub. Note
-# that all '$' signs have to be escaped ('\$') inside the HERE-document.
-# submit to PBS queue
-#qsub <<EOF
 # submit to slurm queue
 sbatch $sbatch_options <<EOF
 #!/bin/bash
-
-# for Torque
-#PBS -q batch
-#PBS -l nodes=1:ppn=${nproc},vmem=${mem},mem=${mem}
-#PBS -N ${name}
-#PBS -jeo 
-#PBS -e ${err} 
 
 # for Slurm
 #SBATCH --nodes=1
@@ -92,32 +81,30 @@ sbatch $sbatch_options <<EOF
 #SBATCH --job-name=${name}
 #SBATCH --output=${err}
 
-#NCPU=\$(wc -l < \$PBS_NODEFILE)
-NNODES=\$(uniq \$PBS_NODEFILE | wc -l)
+#NCPU=\$(wc -l < \$SLURM_JOB_NODELIST)
+NNODES=\$(uniq \$SLURM_JOB_NODELIST | wc -l)
 DATE=\$(date)
-SERVER=\$PBS_O_HOST
-SOURCEDIR=\${PBS_O_WORKDIR}
+SERVER=\$SLURM_SUBMIT_HOST
+SOURCEDIR=\${SLURM_SUBMIT_DIR}
 
 echo ------------------------------------------------------
-echo PBS_O_HOST: \$PBS_O_HOST
-echo PBS_O_QUEUE: \$PBS_O_QUEUE
-echo PBS_QUEUE: \$PBS_O_QUEUE
-echo PBS_ENVIRONMENT: \$PBS_ENVIRONMENT
-echo PBS_O_HOME: \$PBS_O_HOME
-echo PBS_O_PATH: \$PBS_O_PATH
-echo PBS_JOBNAME: \$PBS_JOBNAME
-echo PBS_JOBID: \$PBS_JOBID
-echo PBS_ARRAYID: \$PBS_ARRAYID
-echo PBS_O_WORKDIR: \$PBS_O_WORKDIR
-echo PBS_NODEFILE: \$PBS_NODEFILE
-echo PBS_NUM_PPN: \$PBS_NUM_PPN
+echo HOST: \$SLURM_SUBMIT_HOST
+echo PARTITION: \$SLURM_JOB_PARTITION
+echo HOME: \$HOME
+echo PATH: \$PATH
+echo JOBNAME: \$SLURM_JOB_NAME
+echo JOBID: \$SLURM_JOB_ID
+echo ARRAYID: \$SLURM_ARRAY_TASK_ID
+echo WORKDIR: \$SLURM_SUBMIT_DIR
+echo NODEFILE: \$SLURM_JOB_NODELIST
+echo NUM_PPN: \$SLURM_JOB_CPUS_PER_NODE
 echo ------------------------------------------------------
 echo WORKDIR: \$WORKDIR
 echo SOURCEDIR: \$SOURCEDIR
 echo ------------------------------------------------------
 echo "This job is allocated on '\${NCPU}' cpu(s) on \$NNODES"
 echo "Job is running on node(s):"
-cat \$PBS_NODEFILE
+cat \$SLURM_JOB_NODELIST
 echo ------------------------------------------------------
 echo Start date: \$DATE
 echo ------------------------------------------------------
@@ -127,7 +114,7 @@ source /etc/profile.d/modules.sh
 
 module load chem/qchem
 
-jobdir=/scratch/\${PBS_JOBID}
+jobdir=/scratch/\${SLURM_JOB_ID}
 # scratch folder on compute node
 export QCSCRATCH=\${jobdir}
 export QCLOCALSCR=\${jobdir}
@@ -141,7 +128,7 @@ function clean_up() {
     # move checkpoint files back
     mv \$jobdir/* $rundir/
     # delete temporary folder
-    rm -f /scratch/\${PBS_JOBID}/*
+    rm -f /scratch/\${SLURM_JOB_ID}/*
 }
 
 trap clean_up SIGHUP SIGINT SIGTERM
@@ -150,7 +137,7 @@ in=$job
 out=\$(dirname \$in)/\$(basename \$in .in).out
 
 # The QChem job might depend on other files specified with READ keyword.
-# These files have to be copied to the scratch folder to make them 
+# These files have to be copied to the scratch folder to make them
 # available to the script.
 for f in \$(grep -i "READ" \$in | sed 's/READ//gi')
 do
@@ -195,7 +182,7 @@ echo End date: \$DATE
 echo ------------------------------------------------------
 
 # Pass return value of QChem job on to the SLURM queue, this allows
-# to define conditional execution of dependent jobs based on the 
+# to define conditional execution of dependent jobs based on the
 # exit code of a previous job.
 echo "exit code = \$ret"
 exit \$ret
