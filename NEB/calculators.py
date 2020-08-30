@@ -88,8 +88,9 @@ def run_gaussian_16(atomlist, directory=".", nprocs=1, mem="6Gb"):
     os.system("cp neb.gjf %s/neb.gjf" % directory)
     # update geometry
     XYZ.write_xyz("%s/geometry.xyz" % directory, [atomlist])
+    XYZ.write_geom("%s/geom" % directory, [atomlist])
     # remove number of atoms and comment
-    os.system("cd %s; tail -n +3 geometry.xyz > geom" % directory)
+    #os.system("cd %s; tail -n +3 geometry.xyz > geom" % directory)
     # calculate electronic structure
     #print "running Gaussian..."
     # submit calculation to the cluster

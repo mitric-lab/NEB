@@ -155,7 +155,23 @@ def write_xyz(filename, geometries, title=" ", units="Angstrom", mode='w'):
     fh.close()
     return
 
-def xyz2txt(geometries, title="", units="Angstrom"):
+def write_geom(filename, geometries, units="Angstrom", mode='w'):
+    """
+    write geometries to geom-file withoud header
+
+    Parameters:
+    ===========
+    geometries: list of geometries, each is a list of tuples
+      of type (Zi, (xi,yi,zi))
+
+    """
+    fh = open(filename,mode)
+    txt = xyz2txt(geometries, title, units, skiptitle=True)
+    fh.write(txt)
+    fh.close()
+    return
+
+def xyz2txt(geometries, title="", units="Angstrom", skiptitle=False):
     """
     write nuclear geometry to a string in xyz-format.
 
@@ -182,11 +198,14 @@ def xyz2txt(geometries, title="", units="Angstrom"):
                 current_title = " "
         else:
             current_title = title
-        txt += _append_xyz2txt(atoms, current_title, units)
+        txt += _append_xyz2txt(atoms, current_title, units, skiptitle)
     return txt
 
-def _append_xyz2txt(atoms,title="", units="Angstrom"):
-    txt = "%d\n%s\n" % (len(atoms),title)
+def _append_xyz2txt(atoms,title="", units="Angstrom", skiptitle=False):
+    if skiptitle:
+        txt = ""
+    else:
+        txt = "%d\n%s\n" % (len(atoms),title)
     for atom in atoms:
         atno,pos = atom
         x,y,z = pos[0], pos[1], pos[2]
