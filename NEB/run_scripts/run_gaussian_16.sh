@@ -97,8 +97,8 @@ sbatch $sbatch_options <<EOF
 #PBS -q batch
 #PBS -l nodes=1:ppn=${nproc},vmem=${mem},mem=${mem}
 #PBS -N ${name}
-#PBS -jeo 
-#PBS -e ${err} 
+#PBS -jeo
+#PBS -e ${err}
 
 # for Slurm
 #SBATCH --nodes=1
@@ -144,7 +144,7 @@ module load g16
 in=${job}
 out=\$(dirname \$in)/\$(basename \$in .gjf).out
 
-# Calculations are performed in the user's scratch 
+# Calculations are performed in the user's scratch
 # directory. For each job a directory is created
 # whose contents are later moved back to the server.
 
@@ -167,7 +167,7 @@ function clean_up() {
 
 trap clean_up SIGHUP SIGINT SIGTERM
 
-# The Gaussian job might depend on old checkpoint files specified 
+# The Gaussian job might depend on old checkpoint files specified
 # with the %OldChk=... option. These checkpoint files have to be
 # copied to the scratch folder to make them available to the script.
 for oldchk in \$(grep -i "%oldchk" \$in | sed 's/%oldchk=//gi')
@@ -203,7 +203,7 @@ echo "Calculation is performed in the scratch folder"
 echo "   \$(hostname):\$jobdir"
 
 echo "Running Gaussian ..."
-g09 -p=${nproc} < \$in &> \$out
+g16 -p=${nproc} < \$in &> \$out
 
 # Did the job finish successfully ?
 success=\$(tail -n 1 \$out | grep "Normal termination of Gaussian")
@@ -241,7 +241,7 @@ echo End date: \$DATE
 echo ------------------------------------------------------
 
 # Pass return value of Gaussian job on to the SLURM queue, this allows
-# to define conditional execution of dependent jobs based on the 
+# to define conditional execution of dependent jobs based on the
 # exit code of a previous job.
 echo "exit code = \$ret"
 exit \$ret
@@ -250,4 +250,3 @@ EOF
 
 # Exit code of 'sbatch --wait ...' is the output of the batch script, i.e. $ret.
 exit $?
-
