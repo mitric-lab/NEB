@@ -66,10 +66,10 @@ class BFGS(object):
             print('You are using a *very* large value for '
                           'the maximum step size: %.1f Å' % maxstep)
 
-        if alpha is None:
-            self.alpha = 50.0
+        if alpha is None or == 0:
+            self.H0 = None
         else:
-            self.alpha = alpha
+            self.H0 = np.eye(natoms * 3) * alpha
 
         self.natoms = natoms
         # initial hessian
@@ -607,8 +607,8 @@ if __name__ == "__main__":
                       help="Maximum step length for BFGS optimization in Angstrom [default: 0.01]")
     parser.add_argument("-as", "--autostep", dest="autostep", action="store_true",
                           help="Scale the maximum steplength during the optimization [default: False]")
-    parser.add_argument("--alpha", dest="alpha", type=float, default="50",
-                          help="Values of initial Hessian, we use alpha * I as a guess for the Hessian [default: 60]")
+    parser.add_argument("--alpha", dest="alpha", type=float, default="0",
+                          help="Scaling of initial Hessian. Reasoanable values are between 10 and 50. If it set to zero, the scaling will be determined from the gradients of the first step [default: 0]")
     parser.add_argument("--calculator", dest="calculator", type=str, default="g16",
                       help="Choose electronic structure program, 'g09' or 'g16' (Gaussian) or 'qchem'. If Qchem is chosen, an input file called 'neb.in' has to be present instead of 'neb.gjf' [default: g16]")
 

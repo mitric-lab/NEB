@@ -105,8 +105,10 @@ Optional arguments:
                       [default: False]
 
 * `--alpha`
-                      Values of initial Hessian, we use alpha * I as a guess
-                      for the Hessian [default: 60]
+                      "Scaling of initial Hessian. Reasoanable values are
+                      between 10 and 50. If it set to zero, the scaling will
+                      be determined from the gradients of the
+                      first step [default: 0]"
 
 * `--calculator=CALCULATOR`
                      Choose electronic structure program, 'g09' or 'g16'
