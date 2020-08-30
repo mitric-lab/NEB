@@ -136,7 +136,7 @@ cat \$PBS_NODEFILE
 echo ------------------------------------------------------
 echo Start date: \$DATE
 echo ------------------------------------------------------
-
+source /etc/profile.d/modules.sh
 # Here required modules are loaded and environment variables are set
 module load g16
 
