@@ -384,7 +384,7 @@ class NEB(object):
                         if 0.04 < self.avgForce < 0.05:
                             optimizer[i].maxstep = 0.12 / bohr_to_angs
                         if 0.02 < self.avgForce < 0.035:
-                            optmizer[i].maxstep = 0.06 / bohr_to_angs
+                            optimizer[i].maxstep = 0.06 / bohr_to_angs
                     Rnext[i] = optimizer[i].step(self.R[i], self.effF[i]/self.mass)
                     Rlast[i] = self.R[i]
                     self.R[i] = Rnext[i]
