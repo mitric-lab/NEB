@@ -229,6 +229,8 @@ class NEB(object):
             image_dirs = [os.path.join(self.scratch_dir, d) for d in image_dirs]
             pool = Pool(self.parallel_images)
             results = pool.map(run_calculator_map, list(zip(atomlists, image_dirs, itertools.repeat(kwds, len(self.R)))))
+            pool.close()
+            pool.join()
             for i,(en,grad) in enumerate(results):
                 print("image %4.1d   energy= %+e   |grad|= %e" % (i,en, la.norm(grad)))
                 self.V[i] = en
