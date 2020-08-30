@@ -167,6 +167,7 @@ class NEB(object):
 
         self.V = []
         self.istep = 0
+
     def setGeometry(self, atomlist):
         """
         Parameters:
@@ -175,9 +176,11 @@ class NEB(object):
                        coordinates in bohr for each atom
         """
         self.atomlist = atomlist
+
     def setName(self, name):
         """name is appended to the output files"""
         self.name = name
+
     def setImages(self, images, states):
         """
         Parameters:
@@ -189,6 +192,7 @@ class NEB(object):
         #self.R = [array(img) for img in images] # make sure we have numpy arrays
         self.R = images # vectors of atom positions
         self.states = states
+
     def addImagesLinearly(self, nimg=10):
         """
         between segments interpolate linearly. Add nimg additional images
@@ -244,6 +248,7 @@ class NEB(object):
                 self.V[i] = en
                 self.F[i] = - grad
                 print("image %4.1d   energy= %+e   |grad|= %e" % (i,en, la.norm(grad)))
+
     def _getTangents(self):
         """tangents along the path at the image positions"""
         self.tangents = [None for Ri in self.R]
@@ -391,10 +396,12 @@ class NEB(object):
         #
         else:
             raise Warning("Could not find minimum energy path in %s iterations (average force = %2.5f > tolerance = %2.5f)." % (self.istep+1, self.avgForce, tolerance))
+
     def _writeIteration(self):
         import sys
         print("Iteration = %s  " % self.istep)
         sys.stdout.flush()
+
     def plot(self):
         images = self.getImages()
         energies = self.V
@@ -412,8 +419,10 @@ class NEB(object):
 
     def getImages(self):
         return self.R
+
     def getImageStates(self):
         return self.states
+        
     def splineMEProfile(self):
         """
         interpolate the energy along MEP between images with a cubic spline.
