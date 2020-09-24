@@ -176,7 +176,7 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     # therefore we read in all keywords and their values of the qchem input
     keywords = {}
     for line in lines:
-        if if len(line) > 1 and not line.strip().startswith(("!","$")):
+        if len(line) > 1 and not line.strip().startswith(("!","$")):
             keyword = line.split()[0].lower()
             value = line.split()[1]
             keywords[keyword] = value
@@ -207,7 +207,10 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     # calculate electronic structure
     #print "running QChem ..."
     # submit calculation to the cluster
-    ret  = os.system(r"cd %s; run_qchem.sh --wait neb.in %d %s" % (directory, nprocs, mem))
+    if state_deriv == 0:
+        ret  = os.system(r"cd %s; run_qchem.sh --wait neb.in %d %s" % (directory, nprocs, mem))
+    else:
+        ret  = os.system(r"cd %s; run_qchem.sh --wait --save neb.in %d %s" % (directory, nprocs, mem))
     assert ret == 0, "Return status = %s, error in QChem calculation, see %s/neb.out!" % (ret, directory)
 
     # check if we do ground state or excited state calculation
@@ -235,10 +238,11 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
                         grad += next(f).split()
                     break
         grad = np.array(grad, dtype=float) 
-    
+        #clean up the tmp directory
+        os.system("rm -rf %s/tmp/" % directory)
     ### DEBUG
-    # print("Cartesian QChem gradient in %s" % directory)
-    # print(grad)
+    #print("Cartesian QChem gradient in %s" % directory)
+    #print(grad)
     ###
 
     return en, grad

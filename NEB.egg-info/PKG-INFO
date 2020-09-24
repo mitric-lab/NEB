@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: NEB
-Version: 0.0.1
+Version: 0.0.2
 Summary: optimize a reaction path using the nudged elastic band algorithm
 Home-page: https://github.com/hochej/NEB
 Author: Joscha Hoche

@@ -38,7 +38,13 @@ while :; do
 	    sbatch_options="${sbatch_options} --wait"
 	    shift
 	    ;;
-	--)
+	-s|--save)
+	  # save tmp files of qchen
+	  echo "Save tmp files including GRAD file of excited state gradients"
+	  savetmp=true
+	  shift
+	  ;;
+       --)
 	    # end of options
 	    shift
 	    break
@@ -53,6 +59,7 @@ if [ ! -f "$1" ]
 then
     show_help
 fi
+
 
 # input script
 job=$(readlink -f $1)
@@ -157,7 +164,12 @@ done
 cd \$jobdir
 
 echo "Running QChem ..."
-qchem -nt ${nproc} \$in \$out > qchem_env_settings
+if [ ${savetmp} ]
+then
+      	qchem -nt ${nproc} -save \$in \$out tmp > qchem_env_settings
+else
+  qchem -nt ${nproc} \$in \$out > qchem_env_settings
+fi
 
 # Did the job finish successfully ?
 success=\$(tail -n 20 \$out | grep "Thank you very much for using Q-Chem.")

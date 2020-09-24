@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
-functions for submitting QChem or Gaussian jobs to the queue, 
+functions for submitting QChem or Gaussian jobs to the queue,
 requires the scripts 'run_gaussian_09.sh', 'run_gaussian_16.sh' and 'run_qchem.sh'
 """
-from __future__ import print_function
-from __future__ import absolute_import
+
+
 from builtins import map
 from builtins import range
 from NEB import XYZ, AtomicData
@@ -42,8 +42,22 @@ def run_gaussian_09(atomlist, directory=".", nprocs=1, mem="6Gb"):
     os.system("cp neb.gjf %s/neb.gjf" % directory)
     # update geometry
     XYZ.write_xyz("%s/geometry.xyz" % directory, [atomlist])
+
+    with open("%s/neb.gjf" % directory,) as old_file:
+        lines = old_file.readlines()
+    with open("%s/neb.gjf" % directory, "w") as new_file:
+        try:
+            index = lines.index("@geom\n")
+            lines.remove("@geom\n")
+        except:
+            index = 9
+        c = AtomicData.bohr_to_angs
+        for idx, (Zat, pos) in enumerate(atomlist):
+            l = "%2s    %+12.10f   %+12.10f   %+12.10f \n" % (AtomicData.atom_names[Zat-1].upper(), pos[0]*c, pos[1]*c, pos[2]*c)
+            lines.insert(idx + index, l)
+        new_file.writelines(lines)
     # remove number of atoms and comment
-    os.system("cd %s; tail -n +3 geometry.xyz > geom" % directory)
+    #os.system("cd %s; tail -n +3 geometry.xyz > geom" % directory)
     # calculate electronic structure
     #print "running Gaussian..."
     # submit calculation to the cluster
@@ -56,10 +70,10 @@ def run_gaussian_09(atomlist, directory=".", nprocs=1, mem="6Gb"):
     grad = data["_Cartesian_Gradient"]
 
     ### DEBUG
-    print("Cartesian Gaussian 09 gradient in %s" % directory)
-    print(grad)
+    # print("Cartesian Gaussian 09 gradient in %s" % directory)
+    # print(grad)
     ###
-    
+
     return en, grad
 
 def run_gaussian_16(atomlist, directory=".", nprocs=1, mem="6Gb"):
@@ -86,10 +100,24 @@ def run_gaussian_16(atomlist, directory=".", nprocs=1, mem="6Gb"):
     # create directory if it does not exist already
     os.system("mkdir -p %s" % directory)
     os.system("cp neb.gjf %s/neb.gjf" % directory)
+    with open("%s/neb.gjf" % directory,) as old_file:
+        lines = old_file.readlines()
+    with open("%s/neb.gjf" % directory, "w") as new_file:
+        try:
+            index = lines.index("@geom\n")
+            lines.remove("@geom\n")
+        except:
+            index = 9
+        c = AtomicData.bohr_to_angs
+        for idx, (Zat, pos) in enumerate(atomlist):
+            l = "%2s    %+12.10f   %+12.10f   %+12.10f \n" % (AtomicData.atom_names[Zat-1].upper(), pos[0]*c, pos[1]*c, pos[2]*c)
+            lines.insert(idx + index, l)
+        new_file.writelines(lines)
     # update geometry
     XYZ.write_xyz("%s/geometry.xyz" % directory, [atomlist])
+    #XYZ.write_geom("%s/geom" % directory, [atomlist])
     # remove number of atoms and comment
-    os.system("cd %s; tail -n +3 geometry.xyz > geom" % directory)
+    #os.system("cd %s; tail -n +3 geometry.xyz > geom" % directory)
     # calculate electronic structure
     #print "running Gaussian..."
     # submit calculation to the cluster
@@ -102,8 +130,8 @@ def run_gaussian_16(atomlist, directory=".", nprocs=1, mem="6Gb"):
     grad = data["_Cartesian_Gradient"]
 
     ### DEBUG
-    print("Cartesian Gaussian 09 gradient in %s" % directory)
-    print(grad)
+    # print("Cartesian Gaussian 09 gradient in %s" % directory)
+    # print(grad)
     ###
 
     return en, grad
@@ -140,9 +168,24 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     for Zat,pos in atomlist:
         l = "%2s    %+12.10f   %+12.10f   %+12.10f \n" % (AtomicData.atom_names[Zat-1].upper(), pos[0]*c, pos[1]*c, pos[2]*c)
         geom_lines.append(l)
-    
+
     with open(qchem_file) as fh:
         lines = fh.readlines()
+
+    # check if excited state calculation is performed
+    # therefore we read in all keywords and their values of the qchem input
+    keywords = {}
+    for line in lines:
+        if len(line) > 1 and not line.strip().startswith(("!","$")):
+            keyword = line.split()[0].lower()
+            value = line.split()[1]
+            keywords[keyword] = value
+
+    # cis state deriv is the keyword for the root to use in qchem
+    if "cis_state_deriv" in keywords:
+        state_deriv = int(keywords["cis_state_deriv"])
+    else:
+        state_deriv = 0
 
     # excise old geometry block
     start = None
@@ -160,27 +203,48 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     with open(qchem_file, "w") as fh:
         for l in lines:
             fh.write(l)
-    
+
     # calculate electronic structure
     #print "running QChem ..."
     # submit calculation to the cluster
-    ret  = os.system(r"cd %s; run_qchem.sh --wait neb.in %d %s" % (directory, nprocs, mem))
+    if state_deriv == 0:
+        ret  = os.system(r"cd %s; run_qchem.sh --wait neb.in %d %s" % (directory, nprocs, mem))
+    else:
+        ret  = os.system(r"cd %s; run_qchem.sh --wait --save neb.in %d %s" % (directory, nprocs, mem))
     assert ret == 0, "Return status = %s, error in QChem calculation, see %s/neb.out!" % (ret, directory)
 
-    # total energy is not saved in the checkpoint file, grep it from output file
-    en = subprocess.check_output("cd %s; grep 'Total energy' neb.out | awk '{print $9}'" % directory, shell=True).strip()
-    assert en != "", "Total energy not found in QChem output, see %s/neb.out!" % directory
-    en = float(en)
-    
-    # read gradient from checkpoint files
-    data = Checkpoint.parseCheckpointFile("%s/neb.fchk" % directory)
-    grad = (-1.0) * data["_Cartesian_Forces"]
-    
+    # check if we do ground state or excited state calculation
+    if state_deriv == 0:
+        # Ground state calculation
+        # total energy is not saved in the checkpoint file, grep it from output file
+        en = subprocess.check_output("cd %s; grep 'Total energy' neb.out | awk '{print $9}'" % directory, shell=True).strip()
+        assert en != "", "Total energy not found in QChem output, see %s/neb.out!" % directory
+        en = float(en)
+
+        # read gradient from checkpoint files
+        data = Checkpoint.parseCheckpointFile("%s/neb.fchk" % directory)
+        grad = (-1.0) * data["_Cartesian_Forces"]
+
+    else:
+        # excited state calculation
+        outpath = "%s/tmp/GRAD" % directory
+        grad = []
+        with open(outpath) as f:
+            for line in f:
+                if "$energy" in line:
+                    en = float(next(f))
+                if "$gradient" in line:
+                    while len(grad) < len(atomlist) * 3:
+                        grad += next(f).split()
+                    break
+        grad = np.array(grad, dtype=float) 
+        #clean up the tmp directory
+        os.system("rm -rf %s/tmp/" % directory)
     ### DEBUG
-    print("Cartesian QChem gradient in %s" % directory)
-    print(grad)
+    #print("Cartesian QChem gradient in %s" % directory)
+    #print(grad)
     ###
-    
+
     return en, grad
 
 def run_bagel(atomlist, directory=".", nprocs=1, mem="6Gb"):
@@ -253,10 +317,10 @@ def run_bagel(atomlist, directory=".", nprocs=1, mem="6Gb"):
             parts = fh.readline().split()
             x,y,z = list(map(float, parts[1:4]))
             grad[3*i:3*(i+1)] = x,y,z
-            
+
     return en, grad
 
-    
+
 def get_calculator(name):
     """
     retrieve function for calculating electronic structure (energy + gradient)
@@ -271,4 +335,3 @@ def get_calculator(name):
         return run_bagel
     else:
         raise ValueError("Unknown calculator '%s'" % name)
-    
