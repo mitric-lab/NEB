@@ -9,7 +9,7 @@ def readme():
         return f.read()
 
 setup(name='NEB',
-      version='0.0.2',
+      version='0.0.3',
       scripts=['NEB/optimize_neb'],
       description='optimize a reaction path using the nudged elastic band algorithm',
       url='https://github.com/hochej/NEB',
