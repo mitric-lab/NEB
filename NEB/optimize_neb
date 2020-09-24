@@ -66,7 +66,7 @@ class BFGS(object):
             print('You are using a *very* large value for '
                           'the maximum step size: %.1f Å' % maxstep)
 
-        if alpha is None or == 0:
+        if alpha is None or alpha == 0:
             self.H0 = None
         else:
             self.H0 = np.eye(natoms * 3) * alpha
