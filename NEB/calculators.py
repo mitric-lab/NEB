@@ -172,6 +172,21 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     with open(qchem_file) as fh:
         lines = fh.readlines()
 
+    # check if excited state calculation is performed
+    # therefore we read in all keywords and their values of the qchem input
+    keywords = {}
+    for line in lines:
+        if if len(line) > 1 and not line.strip().startswith(("!","$")):
+            keyword = line.split()[0].lower()
+            value = line.split()[1]
+            keywords[keyword] = value
+
+    # cis state deriv is the keyword for the root to use in qchem
+    if "cis_state_deriv" in keywords:
+        state_deriv = int(keywords["cis_state_deriv"])
+    else:
+        state_deriv = 0
+
     # excise old geometry block
     start = None
     end = None
@@ -195,15 +210,32 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     ret  = os.system(r"cd %s; run_qchem.sh --wait neb.in %d %s" % (directory, nprocs, mem))
     assert ret == 0, "Return status = %s, error in QChem calculation, see %s/neb.out!" % (ret, directory)
 
-    # total energy is not saved in the checkpoint file, grep it from output file
-    en = subprocess.check_output("cd %s; grep 'Total energy' neb.out | awk '{print $9}'" % directory, shell=True).strip()
-    assert en != "", "Total energy not found in QChem output, see %s/neb.out!" % directory
-    en = float(en)
+    # check if we do ground state or excited state calculation
+    if state_deriv == 0:
+        # Ground state calculation
+        # total energy is not saved in the checkpoint file, grep it from output file
+        en = subprocess.check_output("cd %s; grep 'Total energy' neb.out | awk '{print $9}'" % directory, shell=True).strip()
+        assert en != "", "Total energy not found in QChem output, see %s/neb.out!" % directory
+        en = float(en)
 
-    # read gradient from checkpoint files
-    data = Checkpoint.parseCheckpointFile("%s/neb.fchk" % directory)
-    grad = (-1.0) * data["_Cartesian_Forces"]
+        # read gradient from checkpoint files
+        data = Checkpoint.parseCheckpointFile("%s/neb.fchk" % directory)
+        grad = (-1.0) * data["_Cartesian_Forces"]
 
+    else:
+        # excited state calculation
+        outpath = "%s/tmp/GRAD" % directory
+        grad = []
+        with open(outpath) as f:
+            for line in f:
+                if "$energy" in line:
+                    en = float(next(f))
+                if "$gradient" in line:
+                    while len(grad) < len(atomlist) * 3:
+                        grad += next(f).split()
+                    break
+        grad = np.array(grad, dtype=float) 
+    
     ### DEBUG
     # print("Cartesian QChem gradient in %s" % directory)
     # print(grad)
