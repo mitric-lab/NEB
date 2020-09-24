@@ -98,7 +98,7 @@ Optional arguments:
 
 * `--maxstep=MAXSTEP`
                       Maximum step length for BFGS optimization in Angstrom
-                      [default: 0.2]
+                      [default: 0.02]
 
 * `-as`, `--autostep`
                       Scale the maximum steplength during the optimization
