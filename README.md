@@ -1,6 +1,7 @@
 # NEB
 Optimize a reaction path using the nudged elastic band algorithm. An electronic structure
-method implemented in Gaussian 09/16 or Q-Chem is used to drive the calculation.
+method implemented in Gaussian 09/16, Q-Chem or BAGEL is used to calculate the energy and forces.
+The optimization itself is driven by the BFGS algorithm.
 
 Nudged elastic band (NEB) method for finding minimum energy paths (MEP) and saddle points.
 Implementation based on
@@ -45,12 +46,12 @@ Implementation based on
   %Chk=grad.chk
   %Nproc=1
   %Mem=1Gb
-  # B3LYP/LANL2DZ Force
+  # B3LYP/def2SVP Force
     NoSymm
 
   s0 gradient
 
-  0 3
+  0 1
   @geom
 
 
