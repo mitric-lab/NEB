@@ -62,7 +62,15 @@ def run_gaussian_09(atomlist, directory=".", nprocs=1, mem="6Gb"):
     #print "running Gaussian..."
     # submit calculation to the cluster
     ret  = os.system(r"cd %s; run_gaussian_09.sh --wait --fchk neb.gjf %d %s" % (directory, nprocs, mem))
-    assert ret == 0, "Return status = %s, error in Gaussian calculation, see %s/neb.out!" % (ret, directory)
+    if ret != 0:
+        # Since the temporary files from each image are deleted, it is very difficult to
+        # figure out why a calculation failed. Therefore the content of the log-file neb.out
+        # is printed if the calculation failed.
+        print(" ****** content of log-file %s/neb.out ****** " % directory)
+        os.system("cat %s/neb.out" % directory)
+        print(" ****** end of log-file ****** ")
+        raise RuntimeError("Return status = %s, error in Gaussian calculation, see error messages above !" % ret)
+
     # read checkpoint files
     data = Checkpoint.parseCheckpointFile("%s/grad.fchk" % directory)
 
@@ -122,7 +130,15 @@ def run_gaussian_16(atomlist, directory=".", nprocs=1, mem="6Gb"):
     #print "running Gaussian..."
     # submit calculation to the cluster
     ret  = os.system(r"cd %s; run_gaussian_16.sh --wait --fchk neb.gjf %d %s" % (directory, nprocs, mem))
-    assert ret == 0, "Return status = %s, error in Gaussian calculation, see %s/neb.out!" % (ret, directory)
+    if ret != 0:
+        # Since the temporary files from each image are deleted, it is very difficult to
+        # figure out why a calculation failed. Therefore the content of the log-file neb.out
+        # is printed if the calculation failed.
+        print(" ****** content of log-file %s/neb.out ****** " % directory)
+        os.system("cat %s/neb.out" % directory)
+        print(" ****** end of log-file ****** ")
+        raise RuntimeError("Return status = %s, error in Gaussian calculation, see error messages above !" % ret)
+
     # read checkpoint files
     data = Checkpoint.parseCheckpointFile("%s/grad.fchk" % directory)
 
@@ -211,7 +227,14 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
         ret  = os.system(r"cd %s; run_qchem.sh --wait neb.in %d %s" % (directory, nprocs, mem))
     else:
         ret  = os.system(r"cd %s; run_qchem.sh --wait --save neb.in %d %s" % (directory, nprocs, mem))
-    assert ret == 0, "Return status = %s, error in QChem calculation, see %s/neb.out!" % (ret, directory)
+    if ret != 0:
+        # Since the temporary files from each image are deleted, it is very difficult to
+        # figure out why a calculation failed. Therefore the content of the log-file neb.out
+        # is printed if the calculation failed.
+        print(" ****** content of log-file %s/neb.out ****** " % directory)
+        os.system("cat %s/neb.out" % directory)
+        print(" ****** end of log-file ****** ")
+        raise RuntimeError("Return status = %s, error in QChem calculation, see error messages above !" % ret)
 
     # check if we do ground state or excited state calculation
     if state_deriv == 0:
@@ -282,7 +305,7 @@ def run_bagel(atomlist, directory=".", nprocs=1, mem="6Gb"):
             break
     else:
         raise RuntimeError("Molecule section not found in JSON template!")
-
+    
     # The geometry in the 'molecule' section is replaced with the current one
     molecule_sec["angstrom"] = True
 
@@ -303,7 +326,14 @@ def run_bagel(atomlist, directory=".", nprocs=1, mem="6Gb"):
     #print "running BAGEL ..."
     # submit calculation to the cluster
     ret  = os.system(r"cd %s; run_bagel.sh neb.json %d %s --wait" % (directory, nprocs, mem))
-    assert ret == 0, "Return status = %s, error in BAGEL calculation, see %s/neb.out!" % (ret, directory)
+    if ret != 0:
+        # Since the temporary files from each image are deleted, it is very difficult to
+        # figure out why a calculation failed. Therefore the content of the log-file neb.out
+        # is printed if the calculation failed.
+        print(" ****** content of log-file %s/neb.out ****** " % directory)
+        os.system("cat %s/neb.out" % directory)
+        print(" ****** end of log-file ****** ")
+        raise RuntimeError("Return status = %s, error in BAGEL calculation, see error messages above !" % ret)
 
     # read energy and gradient (called "forces" in BAGEL, Arrrg)
     grad = np.zeros(3*natoms)
