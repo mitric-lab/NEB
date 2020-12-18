@@ -191,11 +191,17 @@ def run_qchem(atomlist, directory=".", nprocs=1, mem="6Gb"):
     # check if excited state calculation is performed
     # therefore we read in all keywords and their values of the qchem input
     keywords = {}
+    read_flag = 0
     for line in lines:
-        if len(line) > 1 and not line.strip().startswith(("!","$")):
+        if "$rem" in line:
+            read_flag = 1
+        if "$end" in line and read_flag == 1:
+            read_flag = 0
+        if len(line.split()) > 1 and not line.strip().startswith(("!","$")) and read_flag == 1:
             keyword = line.split()[0].lower()
             value = line.split()[1]
             keywords[keyword] = value
+        
 
     # cis state deriv is the keyword for the root to use in qchem
     if "cis_state_deriv" in keywords:
