@@ -416,8 +416,6 @@ class NEB(object):
             geometries = [XYZ.vector2atomlist(im, self.atomlist) for im in images]
             xyz_out = "neb_%s_%4.4d.xyz" % (self.name, self.istep)
             energy_titles = ["Energy="+str(energy) for energy in energies]
-            print(energy_titles)
-            print(len(gradients), gradients[0].shape, "HALLO")
             XYZ.write_xyz_and_gradients(xyz_out, geometries, gradients, title=energy_titles)
             print("wrote path for iteration %d to %s" % (self.istep, xyz_out))
             if None not in energies:
