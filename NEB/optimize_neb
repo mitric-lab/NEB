@@ -666,7 +666,6 @@ if __name__ == "__main__":
     images = [XYZ.atomlist2vector(atomlist) for atomlist in atomlists]
     neb.setImages(images, states=[0 for im in images])
     
-
     # save initial path
     neb.findMEP(tolerance=args.tolerance, nsteps=args.nsteps, integrator=args.integrator,
                 dt=args.dt, friction=args.friction, optimize_endpoints=args.optimize_endpoints,
