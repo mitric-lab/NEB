@@ -201,10 +201,10 @@ class NEB(object):
         self.R = images # vectors of atom positions
         self.states = states
         # initialize effective forces
-        self.effF = [10 for Ri in self.R]    
+        self.effF = [10 for Ri in self.R]
         self.V = [None for Ri in self.R]  # potential energies of each image
         self.F = [None for Ri in self.R]  # true forces acting on each image
-                        
+
 
     def addImagesLinearly(self, nimg=10):
         """
@@ -590,7 +590,7 @@ if __name__ == "__main__":
     parser.add_argument("--mass",         dest="mass", type=float, default=1.0,
                       help="Mass of beads [default: 1.0]")
     parser.add_argument("-t", "--tolerance", dest="tolerance", type=float, default=0.06,
-                      help="The optimization is finished, if the maximum force of an image of the band drops below this value [default: 0.06]")
+                      help="The optimization is finished, if the maximum force of the band drops below this value [default: 0.06]")
     parser.add_argument("-n", "--nsteps", dest="nsteps", type=int, default=1000,
                       help="Run damped dynamics for NSTEPS steps [default: 10000]")
     parser.add_argument("--dt",           dest="dt", type=float, default=0.1,
