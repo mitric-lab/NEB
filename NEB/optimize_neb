@@ -649,7 +649,6 @@ if __name__ == "__main__":
 
     # path to xyz-file
     xyz_file = args.filename
-    #
     name = basename(xyz_file.replace(".xyz", ""))
     # Read the geometry from the xyz-file
     atomlists = XYZ.read_xyz(xyz_file)
