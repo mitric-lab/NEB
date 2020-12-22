@@ -75,8 +75,8 @@ Optional arguments:
                      elastic band [default: 1.0]
 * `--mass=MASS`           Mass of beads [default: 1.0]
 * `-t TOLERANCE`, `--tolerance=TOLERANCE`
-                     The optimization is finished, if the average force on
-                     the band drops below this value [default: 0.02]
+                     The optimization is finished, if the maximum force on
+                     the band drops below this value [default: 0.06]
 * `-n NSTEPS`, `--nsteps=NSTEPS`
                      Run damped dynamics for NSTEPS steps [default: 1000]
 * `--dt=DT`               Time step for integrating damped dynamics [default:
@@ -100,16 +100,6 @@ Optional arguments:
 * `--maxstep=MAXSTEP`
                       Maximum step length for BFGS optimization in Angstrom
                       [default: 0.02]
-
-* `-as`, `--autostep`
-                      Scale the maximum steplength during the optimization
-                      [default: False]
-
-* `--alpha`
-                      "Scaling of initial Hessian. Reasoanable values are
-                      between 10 and 50. If it set to zero, the scaling will
-                      be determined from the gradients of the
-                      first step [default: 0]"
 
 * `--calculator=CALCULATOR`
                      Choose electronic structure program, 'g09' or 'g16'

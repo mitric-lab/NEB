@@ -2,6 +2,7 @@ CHANGELOG.rst
 MANIFEST.in
 README.md
 setup.py
+NEB/Analyse.py
 NEB/AtomicData.py
 NEB/XYZ.py
 NEB/__init__.py

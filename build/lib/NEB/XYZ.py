@@ -1,4 +1,4 @@
-"""\
+"""
  adapted from
 
  Code for reading/writing Xmol XYZ files.
@@ -17,7 +17,7 @@
 
 from builtins import map
 from builtins import range
-from NEB.AtomicData import atom_names, atomic_number, bohr_to_angs, covalent_radii
+from NEB.AtomicData import atom_names, atomic_number, bohr_to_angs, covalent_radii, hartree_to_eV
 from numpy import zeros
 import numpy as np
 from numpy import linalg as la
@@ -73,6 +73,61 @@ def read_xyz_it(filename, units="Angstrom", fragment_id=atomic_number):
         igeo += 1
         yield atoms
 
+def read_xyz_and_gradients_it(filename, units="Angstrom", fragment_id=atomic_number):
+    """
+    same as read_xyz, with the difference that an iterator to the geometries
+    is returned instead of a list.
+    For very large MD trajectories not all geometries can be kept in memory.
+    The iterator returns one geometry at a time which can be processed in a pipeline.
+
+    Parameters:
+    ===========
+    filename: path to xyz-file
+    units: specify the units of coordinates in xyz-file, "Angstrom" or "bohr"
+    fragment_id: a function that takes the name of the atom and assigns a
+       number to it, usually the atomic number Z.
+
+    Returns:
+    ========
+    iterator to individual structures
+    """
+    assert units in ["bohr", "Angstrom", "hartree/bohr", ""]
+    fh = open(filename)
+    igeo = 1
+    while 1:
+        line = fh.readline()
+        if not line:
+            # end of file reached
+            break
+        words = line.strip().split()
+        if words[0] == "Tv":
+            # skip lattice vectors
+            continue
+        try:
+            nat = int(words[0])
+        except ValueError as e:
+            print(e)
+            raise Exception("Probably wrong number of atoms in xyz-file '%s'" % filename)
+        # skip title
+        title = fh.readline()
+        # read coordinates of nat atoms
+        atoms = []
+        grads = []
+        for i in range(nat):
+            line = fh.readline()
+            words = line.split()
+            atno = fragment_id(words[0])
+            x,y,z = list(map(float,words[1:4]))
+            dEdx, dEdy, dEdz = list(map(float, words[4:7]))
+            if units == "Angstrom":
+                x,y,z = [c/bohr_to_angs for c in [x,y,z]]
+                dEdx, dEdy, dEdz = [g/bohr_to_angs/hartree_to_eV for g in [dEdx, dEdy, dEdz]]
+            atoms.append((atno,(x,y,z)))
+            grads.append([dEdx, dEdy, dEdz])
+        igeo += 1
+        yield atoms, grads
+
+
 def read_xyz(filename, units="Angstrom", fragment_id=atomic_number):
     """
     read geometries from xyz-file
@@ -94,10 +149,33 @@ def read_xyz(filename, units="Angstrom", fragment_id=atomic_number):
         geometries.append(atoms)
     return geometries
 
+def read_xyz_and_gradients(filename, units="Angstrom", fragment_id=atomic_number):
+    """
+    read geometries and gradients from xyz-file
+
+    Parameters:
+    ===========
+    filename: path to xyz-file
+    units: specify the units of coordinates in xyz-file, "Angstrom" or "bohr"
+    fragment_id: a function that takes the name of the atom and assigns a
+       number to it, usually the atomic number Z.
+
+    Returns:
+    ========
+    list of structures, each structure is a list of atom numbers and positions
+       [(Z1, (x1,y1,z1)), (Z2,(x2,y2,z2)), ...]
+    """
+    geometries = []
+    gradients = []
+    for atoms, grads in read_xyz_and_gradients_it(filename, units=units, fragment_id=fragment_id):
+        geometries.append(atoms)
+        gradients.append(grads)
+    return geometries, gradients
+
 def extract_keywords_xyz(filename):
     """
     The title line in an xyz-file may be used to convey additional information
-    (such as total electronic charge) in the form of key-value pairs.
+    (such as total electronic charge) in the form of key-value pairs.b
 
     Example of xyz-file
 
@@ -155,6 +233,31 @@ def write_xyz(filename, geometries, title=" ", units="Angstrom", mode='w'):
     fh.close()
     return
 
+
+
+def write_xyz_and_gradients(filename, geometries, gradients, title=" ", units="Angstrom", mode='w'):
+    """
+    write geometries to xyz-file
+
+    Parameters:
+    ===========
+    geometries: list of geometries, each is a list of tuples
+      of type (Zi, (xi,yi,zi))
+    gradients: list of gradients, each is a list of tuples 
+      of type (Zi, (xi, yi, zi))
+
+    Optional:
+    =========
+    title: string, if a list of strings is provided, the number
+           titles should match the number of geometries
+    """
+    fh = open(filename,mode)
+    txt = xyz_and_gradients2txt(geometries, gradients, title, units)
+    fh.write(txt)
+    fh.close()
+    return
+
+
 def write_geom(filename, geometries, units="Angstrom", mode='w'):
     """
     write geometries to geom-file withoud header
@@ -201,6 +304,39 @@ def xyz2txt(geometries, title="", units="Angstrom", skiptitle=False):
         txt += _append_xyz2txt(atoms, current_title, units, skiptitle)
     return txt
 
+def xyz_and_gradients2txt(geometries, gradients, title="", units="Angstrom", skiptitle=False):
+    """
+    write nuclear geometry and gradients  to a string in xyz-format.
+
+    Parameters:
+    ===========
+    geometries: list of geometries, each is a list of tuples
+      of type (Zi, (xi,yi,zi))
+    gradients: list of gradients, each is a list of tuples
+      of type (Zi, (xi, yi, zi))
+
+    Optional:
+    =========
+    title: string, if a list of strings is provided, the number
+           titles should match the number of geometries
+
+    Returns:
+    ========
+    string
+    """
+    txt = ""
+    for i, (atoms, grads) in enumerate(zip(geometries, gradients)):
+        if type(title) != str:
+            if i < len(title):
+                current_title = title[i]
+            else:
+                current_title = " "
+        else:
+            current_title = title
+        txt += _append_xyz_and_gradients2txt(atoms, grads, current_title, units, skiptitle)
+    return txt
+
+
 def _append_xyz2txt(atoms,title="", units="Angstrom", skiptitle=False):
     if skiptitle:
         txt = ""
@@ -219,6 +355,29 @@ def _append_xyz2txt(atoms,title="", units="Angstrom", skiptitle=False):
         txt += "%4s  %+15.10f  %+15.10f  %+15.10f\n" \
                    % (atname.capitalize(),x,y,z)
     return txt
+
+def _append_xyz_and_gradients2txt(atoms, grads, title="", units="Angstrom", skiptitle=False):
+    if skiptitle:
+        txt = ""
+    else:
+        txt = "%d\n%s\n" % (len(atoms),title)
+    for (atom, grad) in zip(atoms, grads):
+        atno,pos = atom
+        x,y,z = pos[0], pos[1], pos[2]
+        if units == "Angstrom":
+            grad *= bohr_to_angs * hartree_to_eV 
+        dEdx, dEdy, dEdz = grad[0], grad[1], grad[2]
+        if units == "Angstrom":
+            x,y,z = [c*bohr_to_angs for c in [x,y,z]]
+        try:
+            atname = atom_names[atno-1]
+        except TypeError:
+            # leave it as is
+            atname = atno
+        txt += "%4s  %+15.10f  %+15.10f  %+15.10f %+15.10f  %+15.10f  %+15.10f\n" \
+                   % (atname.capitalize(),x,y,z, dEdx, dEdy, dEdz)
+    return txt
+
 
 def update_xyz(filename,atomlist,title="", units="Angstrom"):
     """

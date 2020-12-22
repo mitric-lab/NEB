@@ -19,6 +19,7 @@ import argparse
 
 from NEB import XYZ, utils, AtomicData
 from NEB.calculators import get_calculator
+from NEB.Analyse import Analyse
 
 from numpy import zeros, cos, sin, pi, linspace, array, dot, vstack, cumsum, argmin, frompyfunc, sign
 import numpy as np
@@ -236,17 +237,17 @@ class NEB(object):
         kwds = { "nprocs" : self.procs_per_image,
                  "mem": self.mem_per_image }
 
+        self.not_converged = []
         if self.parallel_images > 1:
             # parallelize over images
             atomlists = []
             image_dirs = []
-            indices = []
             n_left = 0
             for i, Ri in enumerate(self.R):
                 # optimize only the images that have a high effective force
                 if norm(self.effF[i]) > tolerance:
                     n_left += 1
-                    indices.append(i)
+                    self.not_converged.append(i)
                     atomlists.append(XYZ.vector2atomlist(Ri, self.atomlist))
                     image_dirs.append(os.path.join(self.scratch_dir, "IMAGE_%2.2d" % i))
             n_parallel = min([n_left, self.parallel_images])
@@ -254,11 +255,12 @@ class NEB(object):
             results = pool.map(run_calculator_map, list(zip(atomlists, image_dirs, itertools.repeat(kwds, n_left))))
             pool.close()
             pool.join()
-            for i, (en,grad) in zip(indices, results):
+            for i, (en,grad) in zip(self.not_converged, results):
                 self.V[i] = en
                 self.F[i] = -grad
         else:
             # sequential implementation
+            self.not_converged = []
             for i,Ri in enumerate(self.R):
                 # optimize only the images that have a high effective force
                 if norm(self.effF[i]) > tolerance:
@@ -267,11 +269,12 @@ class NEB(object):
                     en, grad = run_calculator(atomlist, directory=image_dir, **kwds)
                     self.V[i] = en
                     self.F[i] = - grad
+                    self.not_converged.append(i)
 
     def _getTangents(self):
         """tangents along the path at the image positions"""
         self.tangents = [None for Ri in self.R]
-        for i in range(1,len(self.R)-1):
+        for i in [idx for idx in range(1,len(self.R)-1) if idx in self.not_converged]:
             if self.V[i-1] <= self.V[i] <= self.V[i+1]:
                 self.tangents[i] = self.R[i+1] - self.R[i]
             elif self.V[i+1] < self.V[i] < self.V[i-1]:
@@ -291,7 +294,7 @@ class NEB(object):
             self.tangents[i] /= norm(self.tangents[i])
 
     def _getEffectiveForces(self):
-        for i in range(1,len(self.R)-1):
+        for i in [idx for idx in range(1,len(self.R)-1) if idx in self.not_converged]:
             # spring force parallel to tangents
             km = self.force_constant
             if self.states[i+1] != self.states[i]:
@@ -336,7 +339,7 @@ class NEB(object):
         for i in range(0, len(self.R)):
             # force on enpoints should only add to the convergence measure
             # is they can be optimized
-            if (i == 0 or i == len(self.R)) or self.optimize_endpoints == False:
+            if (i != 0 or i != len(self.R)) or self.optimize_endpoints == True:
                 self.avgForce[i] = norm(self.effF[i])
                 print("Image %4.1d   Energy = %+e   |eff. Force|= %e" % (i, self.V[i], norm(self.effF[i])))
         print("max force = %2.5f (tolerance = %2.5f)" % (max(self.avgForce), tolerance))
@@ -375,7 +378,7 @@ class NEB(object):
             self._getEffectiveForces()
             # optimized positions of intermediate images
             # and minimize positions of ends
-            for i in range(0, len(self.R)):
+            for i in [idx for idx in range(0, len(self.R)) if idx in self.not_converged]:
                 if i in [0, len(self.R)-1] and (self.optimize_endpoints == False):
                     # as effF[0] = 0 and effF[-1] = 0 we skip this calculation
                     continue
@@ -396,7 +399,7 @@ class NEB(object):
                     Rlast[i] = self.R[i]
                     self.R[i] = Rnext[i]
             self._writeIteration()
-            self.plot()
+            self.plot(tolerance)
             if self._converged(tolerance):
                 break
         #
@@ -408,14 +411,16 @@ class NEB(object):
         print("Iteration = %s  " % self.istep)
         sys.stdout.flush()
 
-    def plot(self):
+    def plot(self, tolerance):
         images = self.getImages()
         energies = self.V
         gradients = [-1.0 * grad.reshape(int(len(self.effF[0]) / 3), 3) for grad in self.effF]
         if self.istep % self.print_every == 0:
             geometries = [XYZ.vector2atomlist(im, self.atomlist) for im in images]
             xyz_out = "neb_%s_%4.4d.xyz" % (self.name, self.istep)
-            energy_titles = ["Energy="+str(energy) for energy in energies]
+            energy_titles = [] # ["Energy="+str(energy) for energy in energies]
+            for energy in energies:
+                energy_titles.append("Energy={} Tolerance={}".format(energy, tolerance))
             XYZ.write_xyz_and_gradients(xyz_out, geometries, gradients, title=energy_titles)
             print("wrote path for iteration %d to %s" % (self.istep, xyz_out))
             if None not in energies:
@@ -589,8 +594,8 @@ if __name__ == "__main__":
                       help="Force constant for strings connecting the beads on the elastic band [default: 1.0]")
     parser.add_argument("--mass",         dest="mass", type=float, default=1.0,
                       help="Mass of beads [default: 1.0]")
-    parser.add_argument("-t", "--tolerance", dest="tolerance", type=float, default=0.06,
-                      help="The optimization is finished, if the maximum force of the band drops below this value [default: 0.06]")
+    parser.add_argument("-t", "--tolerance", dest="tolerance", type=float, default=0.03,
+                      help="The optimization is finished, if the maximum force of the band drops below this value [default: 0.03]")
     parser.add_argument("-n", "--nsteps", dest="nsteps", type=int, default=1000,
                       help="Run damped dynamics for NSTEPS steps [default: 10000]")
     parser.add_argument("--dt",           dest="dt", type=float, default=0.1,
@@ -609,19 +614,16 @@ if __name__ == "__main__":
                       help="Maximum step length for BFGS optimization in Bohr [default: 0.01]")
     parser.add_argument("--calculator", dest="calculator", type=str, default="g16",
                       help="Choose electronic structure program, 'g09' or 'g16' (Gaussian) or 'qchem'. If Qchem is chosen, an input file called 'neb.in' has to be present instead of 'neb.gjf' [default: g16]")
-
     args = parser.parse_args()
 
-    """
-    if len(args) < 1:
-        #print(usage)
-        exit(-1)
-    """
+    if args.filename == "plot":
+        Analyse()
+        raise SystemExit
+
     try:
         os.environ["SLURM_JOBID"]
     except KeyError:
         raise KeyError("This script can only be run through a SLURM queue, environment variable SLURM_JOBID not found!")
-
     if args.calculator == "g09" and not exists("neb.gjf"):
         print("ERROR: Gaussian input script 'neb.gjf' not found in current folder!")
         exit(-1)

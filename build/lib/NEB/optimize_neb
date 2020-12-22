@@ -19,6 +19,7 @@ import argparse
 
 from NEB import XYZ, utils, AtomicData
 from NEB.calculators import get_calculator
+from NEB.Analyse import Analyse
 
 from numpy import zeros, cos, sin, pi, linspace, array, dot, vstack, cumsum, argmin, frompyfunc, sign
 import numpy as np
@@ -47,7 +48,7 @@ class BFGS(object):
 
         maxstep: float
             Used to set the maximum distance an atom can move per
-            iteration (default value is 0.1 Å).
+            iteration (default value is 0.01 bohr).
 
         alpha: float
             Initial guess for the Hessian (curvature of energy surface). A
@@ -68,6 +69,10 @@ class BFGS(object):
 
         if alpha is None or alpha == 0:
             self.H0 = None
+        elif alpha < 10:
+            print('You are using a *very* small value for '
+                    'alpha (the scaling of the inital hessian) alpha: %.1f' % alpha)
+            self.H0 = np.eye(natoms * 3) * alpha
         else:
             self.H0 = np.eye(natoms * 3) * alpha
 
@@ -170,7 +175,6 @@ class NEB(object):
 
         self.print_every = print_every
 
-        self.V = []
         self.istep = 0
 
     def setGeometry(self, atomlist):
@@ -197,6 +201,11 @@ class NEB(object):
         #self.R = [array(img) for img in images] # make sure we have numpy arrays
         self.R = images # vectors of atom positions
         self.states = states
+        # initialize effective forces
+        self.effF = [10 for Ri in self.R]
+        self.V = [None for Ri in self.R]  # potential energies of each image
+        self.F = [None for Ri in self.R]  # true forces acting on each image
+
 
     def addImagesLinearly(self, nimg=10):
         """
@@ -221,43 +230,51 @@ class NEB(object):
         print("initial guess for path contains %s images" % len(path))
         self.R = path
         self.states = st
-    def _getPES(self):
+    def _getPES(self, tolerance):
         """calculate energies and gradients at the image positions"""
-        self.V = [None for Ri in self.R]  # potential energies of each image
-        self.F = [None for Ri in self.R]  # true forces acting on each image
-
         gc.collect()
         # additional keywords controlling electronic structure calculation
         kwds = { "nprocs" : self.procs_per_image,
                  "mem": self.mem_per_image }
 
+        self.not_converged = []
         if self.parallel_images > 1:
             # parallelize over images
-            atomlists = [XYZ.vector2atomlist(x, self.atomlist) for x in self.R]
-            image_dirs = ["IMAGE_%2.2d" % i for i in range(0, len(self.R))]
-            image_dirs = [os.path.join(self.scratch_dir, d) for d in image_dirs]
-            pool = Pool(self.parallel_images)
-            results = pool.map(run_calculator_map, list(zip(atomlists, image_dirs, itertools.repeat(kwds, len(self.R)))))
+            atomlists = []
+            image_dirs = []
+            n_left = 0
+            for i, Ri in enumerate(self.R):
+                # optimize only the images that have a high effective force
+                if norm(self.effF[i]) > tolerance:
+                    n_left += 1
+                    self.not_converged.append(i)
+                    atomlists.append(XYZ.vector2atomlist(Ri, self.atomlist))
+                    image_dirs.append(os.path.join(self.scratch_dir, "IMAGE_%2.2d" % i))
+            n_parallel = min([n_left, self.parallel_images])
+            pool = Pool(n_parallel)
+            results = pool.map(run_calculator_map, list(zip(atomlists, image_dirs, itertools.repeat(kwds, n_left))))
             pool.close()
             pool.join()
-            for i,(en,grad) in enumerate(results):
-                print("image %4.1d   energy= %+e   |grad|= %e" % (i,en, la.norm(grad)))
+            for i, (en,grad) in zip(self.not_converged, results):
                 self.V[i] = en
                 self.F[i] = -grad
         else:
             # sequential implementation
+            self.not_converged = []
             for i,Ri in enumerate(self.R):
-                atomlist = XYZ.vector2atomlist(Ri, self.atomlist)
-                image_dir = os.path.join(self.scratch_dir, "IMAGE_%2.2d" % i)
-                en, grad = run_calculator(atomlist, directory=image_dir, **kwds)
-                self.V[i] = en
-                self.F[i] = - grad
-                print("image %4.1d   energy= %+e   |grad|= %e" % (i,en, la.norm(grad)))
+                # optimize only the images that have a high effective force
+                if norm(self.effF[i]) > tolerance:
+                    atomlist = XYZ.vector2atomlist(Ri, self.atomlist)
+                    image_dir = os.path.join(self.scratch_dir, "IMAGE_%2.2d" % i)
+                    en, grad = run_calculator(atomlist, directory=image_dir, **kwds)
+                    self.V[i] = en
+                    self.F[i] = - grad
+                    self.not_converged.append(i)
 
     def _getTangents(self):
         """tangents along the path at the image positions"""
         self.tangents = [None for Ri in self.R]
-        for i in range(1,len(self.R)-1):
+        for i in [idx for idx in range(1,len(self.R)-1) if idx in self.not_converged]:
             if self.V[i-1] <= self.V[i] <= self.V[i+1]:
                 self.tangents[i] = self.R[i+1] - self.R[i]
             elif self.V[i+1] < self.V[i] < self.V[i-1]:
@@ -277,9 +294,7 @@ class NEB(object):
             self.tangents[i] /= norm(self.tangents[i])
 
     def _getEffectiveForces(self):
-        # effective total force
-        self.effF = [None for Ri in self.R]
-        for i in range(1,len(self.R)-1):
+        for i in [idx for idx in range(1,len(self.R)-1) if idx in self.not_converged]:
             # spring force parallel to tangents
             km = self.force_constant
             if self.states[i+1] != self.states[i]:
@@ -321,23 +336,20 @@ class NEB(object):
 
     def _converged(self, tolerance):
         """Check if average forces have dropped below certain threshold"""
-        for i in range(1,len(self.R)-1):
-            self.avgForce += norm(self.effF[i])
-        if self.optimize_endpoints == True:
+        for i in range(0, len(self.R)):
             # force on enpoints should only add to the convergence measure
             # is they can be optimized
-            self.avgForce += norm(self.effF[0])
-            self.avgForce += norm(self.effF[-1])
-        self.avgForce /= len(self.R)
-        print("average force = %2.5f (tolerance = %2.5f)" % (self.avgForce, tolerance))
-        if self.avgForce < tolerance:
+            if (i != 0 or i != len(self.R)) or self.optimize_endpoints == True:
+                self.avgForce[i] = norm(self.effF[i])
+                print("Image %4.1d   Energy = %+e   |eff. Force|= %e" % (i, self.V[i], norm(self.effF[i])))
+        print("max force = %2.5f (tolerance = %2.5f)" % (max(self.avgForce), tolerance))
+        if max(self.avgForce) < tolerance:
             return True
         else:
             return False
 
     def findMEP(self, tolerance=0.001, nsteps=1000, dt=0.01, friction=0.05,
-                integrator="verlet", optimize_endpoints=True, maxstep=0.1,
-                alpha=50, autostep=False):
+                integrator="verlet", optimize_endpoints=True, maxstep=0.1):
         """
         find minimum energy path by allowing the band to move with some friction to
         damp out oscillations. After the optimization the optimally distributed images
@@ -353,22 +365,22 @@ class NEB(object):
         optimize_endpoints: if True, end points of band move towards energy minima.
         """
         bohr_to_angs = 0.529177249
-        self.avgForce = 0.0
+        self.avgForce = np.zeros(len(self.R))
         self.optimize_endpoints = optimize_endpoints
         if integrator== "bfgs":
             natoms = int(len(self.R[0]) / 3)
-            optimizer = [BFGS(natoms, maxstep, alpha) for _ in range(0, len(self.R))]
+            optimizer = [BFGS(natoms, maxstep) for _ in range(0, len(self.R))]
         Rlast = [Ri for Ri in self.R] # R(t-dt), R[0] and R[-1] stay always the same
         Rnext = [Ri for Ri in self.R] # R(t+dt)
         for self.istep in range(0, nsteps):
-            self._getPES()
+            self._getPES(tolerance)
             self._getTangents()
             self._getEffectiveForces()
             # optimized positions of intermediate images
             # and minimize positions of ends
-            for i in range(0, len(self.R)):
+            for i in [idx for idx in range(0, len(self.R)) if idx in self.not_converged]:
                 if i in [0, len(self.R)-1] and (self.optimize_endpoints == False):
-                    # as effF[0] = 0 and effF[-1] = 0 this line should not be neccessary ????
+                    # as effF[0] = 0 and effF[-1] = 0 we skip this calculation
                     continue
                 if integrator== "verlet":
                     if self.istep == 0:
@@ -383,21 +395,13 @@ class NEB(object):
                         self.R[i] = Rnext[i]
                 elif integrator == "bfgs":
                     # BFGS step
-                    if autostep:
-                        if self.avgForce > 0.05:
-                            optimizer[i].maxstep = 0.03 / bohr_to_angs
-                        if 0.04 < self.avgForce < 0.05:
-                            optimizer[i].maxstep = 0.15 / bohr_to_angs
-                        if 0.02 < self.avgForce < 0.035:
-                            optimizer[i].maxstep = 0.01 / bohr_to_angs
                     Rnext[i] = optimizer[i].step(self.R[i], self.effF[i]/self.mass)
                     Rlast[i] = self.R[i]
                     self.R[i] = Rnext[i]
-
+            self._writeIteration()
+            self.plot(tolerance)
             if self._converged(tolerance):
                 break
-            self._writeIteration()
-            self.plot()
         #
         else:
             raise Warning("Could not find minimum energy path in %s iterations (average force = %2.5f > tolerance = %2.5f)." % (self.istep+1, self.avgForce, tolerance))
@@ -407,16 +411,19 @@ class NEB(object):
         print("Iteration = %s  " % self.istep)
         sys.stdout.flush()
 
-    def plot(self):
+    def plot(self, tolerance):
         images = self.getImages()
         energies = self.V
+        gradients = [-1.0 * grad.reshape(int(len(self.effF[0]) / 3), 3) for grad in self.effF]
         if self.istep % self.print_every == 0:
             geometries = [XYZ.vector2atomlist(im, self.atomlist) for im in images]
             xyz_out = "neb_%s_%4.4d.xyz" % (self.name, self.istep)
-            energy_titles = ["Energy="+str(energy) for energy in energies]
-            XYZ.write_xyz(xyz_out, geometries, title=energy_titles)
+            energy_titles = [] # ["Energy="+str(energy) for energy in energies]
+            for energy in energies:
+                energy_titles.append("Energy={} Tolerance={}".format(energy, tolerance))
+            XYZ.write_xyz_and_gradients(xyz_out, geometries, gradients, title=energy_titles)
             print("wrote path for iteration %d to %s" % (self.istep, xyz_out))
-            if energies != []:
+            if None not in energies:
                 # first column: index of image
                 # second column: energy of image
                 data = np.vstack((np.arange(0, len(images)), energies)).transpose()
@@ -587,8 +594,8 @@ if __name__ == "__main__":
                       help="Force constant for strings connecting the beads on the elastic band [default: 1.0]")
     parser.add_argument("--mass",         dest="mass", type=float, default=1.0,
                       help="Mass of beads [default: 1.0]")
-    parser.add_argument("-t", "--tolerance", dest="tolerance", type=float, default=0.02,
-                      help="The optimization is finished, if the average force on the band drops below this value [default: 0.02]")
+    parser.add_argument("-t", "--tolerance", dest="tolerance", type=float, default=0.03,
+                      help="The optimization is finished, if the maximum force of the band drops below this value [default: 0.03]")
     parser.add_argument("-n", "--nsteps", dest="nsteps", type=int, default=1000,
                       help="Run damped dynamics for NSTEPS steps [default: 10000]")
     parser.add_argument("--dt",           dest="dt", type=float, default=0.1,
@@ -604,26 +611,19 @@ if __name__ == "__main__":
     parser.add_argument("--integrator", dest="integrator", type=str, default="bfgs",
                       help="Choose the integrator for the optimization (verlet or bfgs) [default: bfgs]")
     parser.add_argument("--maxstep", dest="maxstep", type=float, default="0.01",
-                      help="Maximum step length for BFGS optimization in Angstrom [default: 0.01]")
-    parser.add_argument("-as", "--autostep", dest="autostep", action="store_true",
-                          help="Scale the maximum steplength during the optimization [default: False]")
-    parser.add_argument("--alpha", dest="alpha", type=float, default="0",
-                          help="Scaling of initial Hessian. Reasoanable values are between 10 and 50. If it set to zero, the scaling will be determined from the gradients of the first step [default: 0]")
+                      help="Maximum step length for BFGS optimization in Bohr [default: 0.01]")
     parser.add_argument("--calculator", dest="calculator", type=str, default="g16",
                       help="Choose electronic structure program, 'g09' or 'g16' (Gaussian) or 'qchem'. If Qchem is chosen, an input file called 'neb.in' has to be present instead of 'neb.gjf' [default: g16]")
-
     args = parser.parse_args()
 
-    """
-    if len(args) < 1:
-        #print(usage)
-        exit(-1)
-    """
+    if args.filename == "plot":
+        Analyse()
+        raise SystemExit
+
     try:
         os.environ["SLURM_JOBID"]
     except KeyError:
         raise KeyError("This script can only be run through a SLURM queue, environment variable SLURM_JOBID not found!")
-
     if args.calculator == "g09" and not exists("neb.gjf"):
         print("ERROR: Gaussian input script 'neb.gjf' not found in current folder!")
         exit(-1)
@@ -668,12 +668,11 @@ if __name__ == "__main__":
 
     images = [XYZ.atomlist2vector(atomlist) for atomlist in atomlists]
     neb.setImages(images, states=[0 for im in images])
-    neb.addImagesLinearly(2)
+    #neb.addImagesLinearly(2)
     # save initial path
-    neb.plot()
     neb.findMEP(tolerance=args.tolerance, nsteps=args.nsteps, integrator=args.integrator,
                 dt=args.dt, friction=args.friction, optimize_endpoints=args.optimize_endpoints,
-                maxstep=args.maxstep, alpha=args.alpha, autostep=args.autostep)
+                maxstep=args.maxstep)
 
     me = neb.splineMEProfile()
     mep = neb.splineMEPath()
