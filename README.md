@@ -72,11 +72,11 @@ Optional arguments:
                      [default: 1]
 * `-c FORCE_CONSTANT`, `--force_constant=FORCE_CONSTANT`
                      Force constant for strings connecting the beads on the
-                     elastic band [default: 1.0]
+                     elastic band [default: 0.1]
 * `--mass=MASS`           Mass of beads [default: 1.0]
 * `-t TOLERANCE`, `--tolerance=TOLERANCE`
                      The optimization is finished, if the maximum force on
-                     the band drops below this value [default: 0.06]
+                     the band drops below this value [default: 0.02]
 * `-n NSTEPS`, `--nsteps=NSTEPS`
                      Run damped dynamics for NSTEPS steps [default: 1000]
 * `--dt=DT`               Time step for integrating damped dynamics [default:
