@@ -156,9 +156,9 @@ class NEB(object):
         ==========
         print_every: write path and energies for every N-th optimization step
         """
-        self.force_constant = 1.0
+        self.force_constant = force_constant
         self.force_constant_surface_switch = force_constant_surface_switch
-        self.mass = 1.0
+        self.mass = mass
         # parallelization
         self.procs_per_image = procs_per_image
         self.parallel_images = parallel_images
@@ -378,7 +378,8 @@ class NEB(object):
             self._getEffectiveForces()
             # optimized positions of intermediate images
             # and minimize positions of ends
-            for i in [idx for idx in range(0, len(self.R)) if idx in self.not_converged]:
+            #for i in [idx for idx in range(0, len(self.R)) if idx in self.not_converged]:
+            for i in [idx for idx in range(0, len(self.R))]:
                 if i in [0, len(self.R)-1] and (self.optimize_endpoints == False):
                     # as effF[0] = 0 and effF[-1] = 0 we skip this calculation
                     continue
@@ -590,12 +591,12 @@ if __name__ == "__main__":
                       help="Amount of memory to be allocated for each image calculation [default: 6Gb]")
     parser.add_argument("-p", "--parallel_images", dest="parallel_images", type=int, default=1,
                       help="How many images should be processed in parallel? Each image will be run with `procs_per_image` processors [default: 1]")
-    parser.add_argument("-c", "--force_constant", dest="force_constant", type=float, default=1.0,
-                      help="Force constant for strings connecting the beads on the elastic band [default: 1.0]")
+    parser.add_argument("-c", "--force_constant", dest="force_constant", type=float, default=0.1,
+                      help="Force constant for strings connecting the beads on the elastic band [default: 0.1]")
     parser.add_argument("--mass",         dest="mass", type=float, default=1.0,
                       help="Mass of beads [default: 1.0]")
-    parser.add_argument("-t", "--tolerance", dest="tolerance", type=float, default=0.03,
-                      help="The optimization is finished, if the maximum force of the band drops below this value [default: 0.03]")
+    parser.add_argument("-t", "--tolerance", dest="tolerance", type=float, default=0.02,
+                      help="The optimization is finished, if the maximum force of the band drops below this value [default: 0.02]")
     parser.add_argument("-n", "--nsteps", dest="nsteps", type=int, default=1000,
                       help="Run damped dynamics for NSTEPS steps [default: 10000]")
     parser.add_argument("--dt",           dest="dt", type=float, default=0.1,
