@@ -140,6 +140,7 @@ class BFGS(object):
         a = np.dot(dr, df)
         dg = np.dot(self.H, dr)
         b = np.dot(dr, dg)
+        print(f"A: {a}, B: {b}, np.outer(dg, dg): {np.outer(dg, dg)}") 
         self.H -= np.outer(df, df) / a + np.outer(dg, dg) / b
         return None
 
@@ -378,8 +379,7 @@ class NEB(object):
             self._getEffectiveForces()
             # optimized positions of intermediate images
             # and minimize positions of ends
-            #for i in [idx for idx in range(0, len(self.R)) if idx in self.not_converged]:
-            for i in [idx for idx in range(0, len(self.R))]:
+            for i in [idx for idx in range(0, len(self.R)) if idx in self.not_converged]:
                 if i in [0, len(self.R)-1] and (self.optimize_endpoints == False):
                     # as effF[0] = 0 and effF[-1] = 0 we skip this calculation
                     continue
