@@ -140,7 +140,6 @@ class BFGS(object):
         a = np.dot(dr, df)
         dg = np.dot(self.H, dr)
         b = np.dot(dr, dg)
-        print(f"A: {a}, B: {b}, np.outer(dg, dg): {np.outer(dg, dg)}") 
         self.H -= np.outer(df, df) / a + np.outer(dg, dg) / b
         return None
 
