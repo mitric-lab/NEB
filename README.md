@@ -73,6 +73,8 @@ the geodesic interpolation algorithm developed by T. Martinez and coworkers (see
 Their algorithm is implemented in a python package and can be obtained from their [Github repository](https://github.com/virtualzx-nad/geodesic-interpolate).
 A number of 12 to 16 interpolated structures is often a good choice. 
 
+-----------------------------
+
 But in addition you have to set up a Gaussian input script called `neb.gjf`
  that computes the gradient and saves it in a checkpoint file called
  'grad.chk'. The geometry is updated via a file called `geom` that
