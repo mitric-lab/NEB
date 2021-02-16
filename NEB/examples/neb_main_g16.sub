@@ -11,8 +11,6 @@ SCRATCHDIR=/sscratch/${SLURM_JOBID}
 
 cd $SLURM_SUBMIT_DIR
 
-export PATH=$HOME/NEB_TEST/NEB/NEB/run_scripts/:$PATH
-
 optimize_neb $xyz \
              --procs_per_image=4 \
              --mem_per_image=1Gb \
@@ -21,8 +19,6 @@ optimize_neb $xyz \
              --print_every=1 \
              --integrator=bfgs \
              --optimize_endpoints \
-             --maxstep=0.03 \
-             --alpha=30 \
              --calculator=g16 \
           &> neb_main_g16.out
 
