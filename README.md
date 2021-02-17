@@ -11,7 +11,7 @@ Requirements
 ----
 Python 2.7+ or 3.5+ 
 ##### Python Packages
- -     'numpy','argparse','future'
+ -     numpy, argparse, future
 
 Installation
 ----
@@ -47,12 +47,15 @@ Usage
 
 -------------------
 ##### Input Files:<br/>
-    `path.xyz`    -   xyz-file with educt, intermediates and product<br/>
-    `neb.gjf`     -   Gaussian 09 input script driving the energy calculation (see below)<br/>
+    path.xyz      -  xyz-file with educt, intermediates and product
+    for Gaussian 09/16
+      neb.gjf     -  Gaussian 09/16 input script driving the energy calculation (see below)
+    for Q-Chem
+      neb.in      -  Q-Chem input script driving the energy calculation (see below)
 
 ##### Output Files:<br/>
-    `neb_####.xyz`            -  current reaction path<br/>
-    `path_energies_####.dat`  -  current energy profile<br/>
+    neb_####.xyz            -  current reaction path
+    path_energies_####.dat  -  current energy profile
 
 ---------------
 
@@ -74,7 +77,7 @@ Their algorithm is implemented in a python package and can be obtained from thei
 A number of 12 to 16 interpolated structures is often a good choice. 
 
 
-#### Interface to Gaussian 16 or 09
+#### Interface to Gaussian 09/16
 In addition you have to set up a Gaussian input script called `neb.gjf`
  that computes the gradient and saves it in a checkpoint file called
  'grad.chk'. The geometry is updated via a file called `geom` that
