@@ -73,9 +73,9 @@ the geodesic interpolation algorithm developed by T. Martinez and coworkers (see
 Their algorithm is implemented in a python package and can be obtained from their [Github repository](https://github.com/virtualzx-nad/geodesic-interpolate).
 A number of 12 to 16 interpolated structures is often a good choice. 
 
------------------------------
 
-But in addition you have to set up a Gaussian input script called `neb.gjf`
+###Interface to Gaussian 16 or 09
+In addition you have to set up a Gaussian input script called `neb.gjf`
  that computes the gradient and saves it in a checkpoint file called
  'grad.chk'. The geometry is updated via a file called `geom` that
  is imported at the end of the script.
@@ -97,7 +97,59 @@ But in addition you have to set up a Gaussian input script called `neb.gjf`
   --------------------------------------
  ```
 
-### Example
+###Interface to Q-Chem 
+To use the NEB package in combination with Q-Chem you have to prepare a Q-Chem input
+script called `neb.in`. Within this input file it is important that you request a force calculation
+and that a Checkpoint file will be written. An example input script is shown below:
+```
+$comment
+  Q-Chem input file
+ 1. A line prefixed with an exclamation mark ‘!’ is treated as a comment and will be ignored by the program
+ 2. Variables are case-insensitive (as is the whole Q-CHEM input file).
+$end
+
+$molecule
+ 0 1       ! Charge | Multiplicity | You do not have to specify the molecule here!
+$end
+
+$rem
+ !--GENERAL Q-CHEM SETTINGS -----------------------------------------------------------------------
+  MEM_TOTAL                 12250      ! maximum amount of ram memory (MB)
+  MEM_STATIC                2000       ! static memory used (MB).
+  AO2MO_DISK                50000      ! specifies maximum amount of memory written to scratch files (MB)
+  GUI                       2          ! 0: generate no checkpoint file | 2: generate fchk
+ !-------------------------------------------------------------------------------------------------
+
+ !--SCF PROCEDURE ---------------------------------------------------------------------------------
+  SCF_ALGORITHM             DIIS       ! DIIS |DM | GDM | RCA | ROOTHAN | DIIS_GDM | DIIS_DM | RCA_DIIS
+  SCF_CONVERGENCE           8          ! SCF is converged when energy change is below 1e-X hartree
+  SCF_MAX_CYCLES            150        ! controls the maximum number of scf iterations perimetted
+  SYMMETRY_IGNORE           true       ! control whether to use symmetry and reorienation of the molecule
+ !-------------------------------------------------------------------------------------------------
+
+ !--SPECIFICATION OF JOBTYPE ----------------------------------------------------------------------
+  JOBTYPE                   force       ! requests the computation of gradients
+ !-------------------------------------------------------------------------------------------------
+
+ !--LEVEL OF THEORY -------------------------------------------------------------------------------
+  METHOD                    B3lYP       ! specifies the (TD)-DFT functional
+  BASIS                     def2-svp    ! specifies basis set to be used
+ !-------------------------------------------------------------------------------------------------
+ $end
+```
+
+
+### Visualization of results
+After successful minimization of the reaction pathn you can plot the energy of the path during each iteration. Within the 
+directory where the `neb_####.xyz` and `path_energies_####.dat` files are located, you can just call:
+```
+optimize_neb plot
+```
+This will open a Matplotlib window where you can slide through the iterations as shown below:<br>
+<img src="http://jhoche.de/test.gif">
+
+
+### Examples
 
 A minimal example with a submit script can be found in the NEB/examples directory. Make sure that the optimize_neb script
 is within your PATH variable, so that it can be called from the command-line. 
