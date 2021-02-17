@@ -1,0 +1,25 @@
+#!/bin/bash
+# for Slurm
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem=1Gb
+#SBATCH --job-name=neb_main_g16
+#SBATCH --output=neb_main_g16.err
+
+xyz=water_flip.xyz
+SCRATCHDIR=/sscratch/${SLURM_JOBID}
+
+cd $SLURM_SUBMIT_DIR
+
+optimize_neb $xyz \
+             --procs_per_image=4 \
+             --mem_per_image=1Gb \
+             --parallel_images=10 \
+             --scratch_dir=$SCRATCHDIR \
+             --print_every=1 \
+             --integrator=bfgs \
+             --optimize_endpoints \
+             --calculator=qchem \
+          &> neb_main_g16.out
+
+echo "FINISHED"

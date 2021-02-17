@@ -68,13 +68,13 @@ using the nudged elastic band (NEB) algorithm.
 #### Initial Path
 The initial path for the NEB should be interpolated between the two minimum structures. There are two different 
 algorithms that can be used. Either a linear interpolation (in internal coordinates), which is a for example a part
-of the DFTBaby package by A. Humeniuk (see interpolate_linearly.py in DFTBaby). The more sophisticated way is to use 
+of the DFTBaby package by A. Humeniuk (see `interpolate_linearly.py` in DFTBaby). The more sophisticated way is to use 
 the geodesic interpolation algorithm developed by T. Martinez and coworkers (see [Ref.](https://aip.scitation.org/doi/full/10.1063/1.5090303)).
 Their algorithm is implemented in a python package and can be obtained from their [Github repository](https://github.com/virtualzx-nad/geodesic-interpolate).
 A number of 12 to 16 interpolated structures is often a good choice. 
 
 
-###Interface to Gaussian 16 or 09
+#### Interface to Gaussian 16 or 09
 In addition you have to set up a Gaussian input script called `neb.gjf`
  that computes the gradient and saves it in a checkpoint file called
  'grad.chk'. The geometry is updated via a file called `geom` that
@@ -97,7 +97,7 @@ In addition you have to set up a Gaussian input script called `neb.gjf`
   --------------------------------------
  ```
 
-###Interface to Q-Chem 
+#### Interface to Q-Chem 
 To use the NEB package in combination with Q-Chem you have to prepare a Q-Chem input
 script called `neb.in`. Within this input file it is important that you request a force calculation
 and that a Checkpoint file will be written. An example input script is shown below:
@@ -139,7 +139,7 @@ $rem
 ```
 
 
-### Visualization of results
+#### Visualization of results
 After successful minimization of the reaction pathn you can plot the energy of the path during each iteration. Within the 
 directory where the `neb_####.xyz` and `path_energies_####.dat` files are located, you can just call:
 ```
@@ -151,8 +151,15 @@ This will open a Matplotlib window where you can slide through the iterations as
 
 ### Examples
 
-A minimal example with a submit script can be found in the NEB/examples directory. Make sure that the optimize_neb script
-is within your PATH variable, so that it can be called from the command-line. 
+Some examples with a submit script can be found in the NEB/examples directory.
+- `water_flip_g16`: Reaction path of water flip with Gaussian16 in the singlet ground state at the DFT level.
+- `water_flip_g16_excited_state`: Reaction path of water flip with Gaussian16 in the first singlet excited state at the DFT level.
+- `water_flip_qchem`: Reaction path of water flip with Q-Chem in the singlet ground state at the DFT level.<br>
+<br>
+Make sure that the `optimize_neb` script
+is within your `PATH variable, so that it can be called from the command-line. The NEB computations can be performed in the
+  electronic ground state as well as in the excited state. The interfaces allow these features at least for Gaussian 16 and Q-Chem. Optimization
+  within the frame of spin-polarised/unrestricted wave functions are also possible and tested with Gaussian 16 and Q-Chem. 
 
 --------------
 Optional arguments:
