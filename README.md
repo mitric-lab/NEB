@@ -28,6 +28,19 @@ Now it should be possible to call the NEB program:
 ```bash
 optmize_neb --help
 ```
+The execution of the NEB program is only possible within the SLURM environment. The idea is that 
+a SLURM job will execute the optimize_neb script and this job will automatically submit the force 
+calculations of the individual images (geometries). 
+Therefore, this NEB package contains submission scripts to send Gaussian/Q-Chem/Bagel jobs to the SLURM queue. 
+It might be necessary to adopt them to your system. They are located in 
+   ```NEB/run_scripts/```
+Additionally, it is important that this path is included in your `$PATH` environment variable. In bash
+you can execute something like this:
+````
+export PATH=__PATH_TO_YOUR_NEB_DIRECTORY__/NEB/run_scripts/:$PATH
+```` 
+    
+
 
 Usage
 ----
@@ -59,7 +72,6 @@ Usage
 
 ---------------
 
-The execution of the NEB program is only possible within the SLURM environment.
 The program expects the initial (unoptimised) paths (xyz file) as a single argument, e.g:
 ```
 optimize_neb path.xyz
@@ -160,7 +172,7 @@ Some examples with a submit script can be found in the NEB/examples directory.
 - `water_flip_qchem`: Reaction path of water flip with Q-Chem in the singlet ground state at the DFT level.<br>
 <br>
 Make sure that the `optimize_neb` script
-is within your `PATH variable, so that it can be called from the command-line. The NEB computations can be performed in the
+is within your `$PATH` variable, so that it can be called from the command-line. The NEB computations can be performed in the
   electronic ground state as well as in the excited state. The interfaces allow these features at least for Gaussian 16 and Q-Chem. Optimization
   within the frame of spin-polarised/unrestricted wave functions are also possible and tested with Gaussian 16 and Q-Chem. 
 
